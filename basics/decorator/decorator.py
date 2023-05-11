@@ -7,6 +7,7 @@
 # LastModified: 2023-02-03 22:35:46 +0900
 # Reference: https://qiita.com/macinjoke/items/1be6cf0f1f238b5ba01b
 #            https://www.datacamp.com/tutorial/decorators-python
+#            https://qiita.com/mtb_beta/items/d257519b018b8cd0cc2e
 #
 
 
