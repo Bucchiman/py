@@ -1,8 +1,8 @@
 <!-- FileName: readme
- Author: 8ucchiman
- CreatedDate: 2023-02-28 13:15:12 +0900
+ Author:       8ucchiman
+ CreatedDate:  2023-02-28 13:15:12 +0900
  LastModified: 2023-03-24 13:23:24 +0900
- Reference: 8ucchiman.jp
+ Reference:    https://leimao.github.io/article/Introduction-to-Bayesian-Filter/
 -->
 
 
@@ -82,3 +82,24 @@ gainを観測値と過去の予測値から得られないか。
 ```
     new gain = old gain + 1/3*(measurement - predicted weight) / 1day
 ```
+
+# ベイジアンフィルタ
+`各時刻における移動体の状態を確率分布として求める手法`
+
+時刻tにおける状態から次の時刻$t+1$に状態に要る確率をそれぞれ求める。
+状態を$x_t$, 観測を$y_t$とする。
+時刻tまでに観測された時系列画像$y_{1:t} = {y_1, \cdots, y_t}$から、移動体の状態$x_t$を推定する手法。
+$p(x_t|y_{1:t-1}) = \int p(x_t|x_{t-1})p(x_{t-1}|y_{1:t-1})dx_{t-1}$
+
+これは、1時刻前の分布$p(x_{t-1}|y_{1:t-1})$に、状態遷移確率$p(x_t|x_{t-1})$を乗じたもの。
+
+次に、この予測分布と現在時刻における観測から、以下を計算する。
+$p(x_t|y_{1:t}) = p(y_t|x_t)p(x_t|y_{1:t-1})$
+$p(y_t|x_t)$は尤度と呼ばれ、現時刻の移動体の状態$x_t$に応じて観測$y_t$が得られる確率を表現する項である。
+1時刻前の状態を表す確率分布から予測分布を生成し、さらに尤度を観測することで現時刻の移動体の状態を表す確率分布$p(x_t|y_{1:t})$を求める方法。
+
+# カルマンフィルタ
+
+
+
+
