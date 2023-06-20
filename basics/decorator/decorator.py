@@ -29,6 +29,7 @@ def args_logger(f):
 def print_message(msg):
     print(msg)
 
+
 @args_logger
 def print_no_augments():
     print()
