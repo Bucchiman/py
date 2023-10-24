@@ -19,6 +19,21 @@ import pandas as pd
 from time import time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
+from gutils_misc import OPEN, RUN, CPR, LNS, MKDIR, RMRF, RMRF_FULL
+from gutils_misc import CAT, HEAD, TAIL, HEAD_TAIL, TOUCH, LINE
+from gutils_misc import HOME, lena, gm_im_dir, gm_im_lst, gm_im_calib_dir
+from gutils_misc import get_latest_file
+
+from gutils_misc import nx_info, nx_shape, nx_npz, nx_npz_load, nx_dir, nx_dict, nx_cfg, notqdm
+
+from gutils_time import gTicToc, time_func, FPS, gFPS_fixed
+
+from gutils_im import im_grid, asIm, asArray
+from gutils_tands import im_movie, cv2_noise
+
+from gutils_model_params_info_sparsity import plt_decorate, from_numpy, to_numpy
+import matplotlib.pyplot as plt
+
 
 
 def Bucchiman_was_here ():
@@ -28,7 +43,7 @@ def Bucchiman_was_here ():
     print("8ucchiman was here!!!!!")
 
 
-def show_image(path: str):
+def Bshow_image(path: str):
     """
         Arguments:
             - path: image path
@@ -43,10 +58,10 @@ def show_image(path: str):
     # closing all open windows
     cv.destroyAllWindows()
 
-def show_triad():
+def Bshow_triad():
     pass
 
-def show_pairs(a, b):
+def Bshow_pairs(a, b):
     """
         show pair images
         Arguments:
@@ -57,11 +72,13 @@ def show_pairs(a, b):
     cv.imshow("image", concat_images)
 
 
-def show_video(path: str):
+def Bshow_video(path: str):
     """
         Arguments:
             - path: video path
         Reference: https://learnopencv.com/read-write-and-display-a-video-using-opencv-cpp-python/
+        Description:
+            This is VideoShow
     """
     cap = cv.VideoCapture(path)
     # Check if camera opened successfully
@@ -92,7 +109,7 @@ def show_video(path: str):
 #
 # Reference: gulliver, gutils.zip, gutils_time.py
 # decorator
-def timer(func):
+def Gtimer(func):
     def wrapper(*args, **kwargs):
         before = time()
         rv = func(*args, **kwargs)
@@ -102,12 +119,12 @@ def timer(func):
     return wrapper
 
 
-@timer
+@Gtimer
 def add(x, y):
     return x + y
 
 
-def image_filter(func):
+def Bimage_filter(func):
     def wrapper(*args, **kwargs):
         processing_image = func(*args, **kwargs)
         concat_images = cv.hconcat([args[0], processing_image])
@@ -119,18 +136,18 @@ def image_filter(func):
         cv.destroyAllWindows()
     return wrapper
 
-@timer
-@image_filter
+@Gtimer
+@Bimage_filter
 def gaussianfilter(image):
     return cv.GaussianBlur(image, (5, 5), 0)
 
-@timer
-@image_filter
+@Gtimer
+@Bimage_filter
 def medianfilter(image):
     return cv.medianBlur(image, 7)
 
-@timer
-@image_filter
+@Gtimer
+@Bimage_filter
 def bilateralfilter(image):
     return cv.bilateralFilter(image, 9, 75, 75)
 
@@ -147,7 +164,7 @@ def bilateralfilter(image):
 ################################################################
 # gabor filter
 ################################################################
-def gabor_filter (img):
+def Bgabor_filter (img):
     """
         Reference: https://github.com/intsynko/gabor_dashboard/tree/main
     """
@@ -214,7 +231,7 @@ def gabor_filter (img):
 ################################################################
 
 
-def imagegrid(func):
+def Bimagegrid(func):
     """
         image grid sample
         https://qiita.com/mtb_beta/items/d257519b018b8cd0cc2e
@@ -226,8 +243,8 @@ def imagegrid(func):
         return results
     return wrapper
 
-@imagegrid
-def run():
+@Bimagegrid
+def _run():
     # toDo
     pass
 
@@ -237,7 +254,7 @@ def run():
 
 ############################################################################################
 # toDo matplotlib
-def calc_histgram():
+def Bcalc_histgram():
     pass
 
 
@@ -255,6 +272,9 @@ def calc_histgram():
 
 
 def _sample_kmeans():
+    """
+        Reference: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+    """
     from sklearn.cluster import KMeans
     X = np.array([[1, 2], [1, 4], [1, 0],
                   [10, 2], [10, 4], [10, 0]])
@@ -264,6 +284,8 @@ def _sample_kmeans():
     kmeans.cluster_centers_
     pass
 
+
+
 ############################################################################################
 # toDo onnx
 
@@ -271,6 +293,48 @@ def _sample_kmeans():
 # toDo others
 
 ############################################################################################
+# Fractal
+def Bcreate_fractal_image():
+    """
+        Model:      IFS
+        Keywords:   FractalDB-1k
+        Reference:  https://link.springer.com/content/pdf/10.1007/s11263-021-01555-8.pdf
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from gutils_model_params_info_sparsity import plt_decorate, axtext, axvline, axhline, axhline_mean_std
+    def _image_show(Xt, Xt1):
+        plt.plot(Xt, c="r", label="Xt")
+        plt.plot(Xt1, c="r", label="Xt")
+        figsize = (16, 9)
+        title = "IFS h"
+        xlim, ylim = None, None
+        xlabel, ylabel = "x", "y"
+        show = False
+        save_fn = "/tmp/a.png"
+        legend = ("upper right", "func type")
+        opts = dict(title=title, xlabel=xlabel, ylabel=ylabel, xlim=xlim, ylim=ylim,
+                    show=show, save_fn=save_fn, legend=legend, figsize=figsize)
+        plt_decorate(**opts)
+        OPEN(save_fn)
+    x = np.random.random([2, 1])
+    for i in range(10):
+        A = np.random.random([2, 2])
+        B = np.random.random([2, 1])
+        W = A@x + B
+        print(W)
+        _image_show(X, W)
+        X = W
+
+    
+
+#Bcreate_fractal_image()
+############################################################################################
+
+# gutils
+def _main_mpl_plot():
+    from gutils_howto import main_mpl_plot
+    main_mpl_plot()
 
 
 
@@ -289,6 +353,6 @@ if __name__ == "__main__":
     # add(2, 4)
     image = cv.imread(image_path)
     # gaussianfilter(image)
-    # medianfilter(image)
-    # bilateralfilter(image)
-    gabor_filter(image)
+
+    # gabor_filter(image)
+    _main_mpl_plot()
