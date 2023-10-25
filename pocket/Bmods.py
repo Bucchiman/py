@@ -19,19 +19,6 @@ import pandas as pd
 from time import time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
-from gutils_misc import OPEN, RUN, CPR, LNS, MKDIR, RMRF, RMRF_FULL
-from gutils_misc import CAT, HEAD, TAIL, HEAD_TAIL, TOUCH, LINE
-from gutils_misc import HOME, lena, gm_im_dir, gm_im_lst, gm_im_calib_dir
-from gutils_misc import get_latest_file
-
-from gutils_misc import nx_info, nx_shape, nx_npz, nx_npz_load, nx_dir, nx_dict, nx_cfg, notqdm
-
-from gutils_time import gTicToc, time_func, FPS, gFPS_fixed
-
-from gutils_im import im_grid, asIm, asArray
-from gutils_tands import im_movie, cv2_noise
-
-from gutils_model_params_info_sparsity import plt_decorate, from_numpy, to_numpy
 import matplotlib.pyplot as plt
 
 
@@ -43,7 +30,38 @@ def Bucchiman_was_here ():
     print("8ucchiman was here!!!!!")
 
 
-def Bshow_image(path: str):
+# Do you like gulliver codes??????????????????
+if 1:
+    from gutils_misc import OPEN, RUN, CPR, LNS, MKDIR, RMRF, RMRF_FULL
+    from gutils_misc import CAT, HEAD, TAIL, HEAD_TAIL, TOUCH, LINE
+    from gutils_misc import WHOAMI, MYTMP
+    from gutils_misc import HOME, lena, gm_im_dir, gm_im_lst, gm_im_calib_dir
+    from gutils_misc import get_latest_file
+    
+    from gutils_misc import nx_info, nx_shape, nx_npz, nx_npz_load, nx_dir, nx_dict, nx_cfg, notqdm
+
+    from gutils_time import gTicToc, time_func, FPS, gFPS_fixed
+
+    from gutils_im import im_grid, asIm, asArray
+    from gutils_tands import im_movie, cv2_noise
+
+    from gutils_model_params_info_sparsity import plt_decorate, from_numpy, to_numpy
+
+
+
+if 1:
+    from gutils_misc import nx_npz, nx_npz_load
+    from gutils_numpy import np_savetxt, np_loadtxt
+    from gutils_grid import loadnpz, savenpz, asArray
+
+    from gutils_im import asIm
+    from gutils_ocv import calibrate_camera
+
+    from gutils_model_params_info_sparsity import plt_decorate, axtext, axvline, axhline, axhline_mean_std
+    from gutils_model_params_info_sparsity import from_numpy, to_numpy
+
+
+def Bshow_image (path: str):
     """
         Arguments:
             - path: image path
@@ -58,10 +76,10 @@ def Bshow_image(path: str):
     # closing all open windows
     cv.destroyAllWindows()
 
-def Bshow_triad():
+def Bshow_triad ():
     pass
 
-def Bshow_pairs(a, b):
+def Bshow_pairs (a, b):
     """
         show pair images
         Arguments:
@@ -70,6 +88,16 @@ def Bshow_pairs(a, b):
     """
     concat_images = cv.hconcat([a, b])
     cv.imshow("image", concat_images)
+
+
+def Bfzfprompt4array (array):
+    from pyfzf.pyfzf import FzfPrompt
+    fzf = FzfPrompt()
+    fzf.prompt(array)
+
+def Bfzfprompt4path (path: str):
+    from pyfzf.pyfzf import FzfPrompt
+    fzf
 
 
 def Bshow_video(path: str):
@@ -158,6 +186,8 @@ def bilateralfilter(image):
 
 
 ################################################################
+# fourier
+
 
 
 
@@ -331,20 +361,172 @@ def Bcreate_fractal_image():
 #Bcreate_fractal_image()
 ############################################################################################
 
+# epipolar
+
+def create_epipolar():
+    """
+        Reference:  https://docs.opencv.org/4.8.0/da/de9/tutorial_py_epipolar_geometry.html
+                    https://whitewell.sakura.ne.jp/OpenCV/py_tutorials/py_calib3d/py_epipolar_geometry/py_epipolar_geometry.html
+        Code:       https://whitewell.sakura.ne.jp/OpenCV/py_tutorials/py_calib3d/py_epipolar_geometry/epipolar.py
+        Image:      https://whitewell.sakura.ne.jp/OpenCV/py_tutorials/py_calib3d/py_epipolar_geometry/left.jpg
+                    https://whitewell.sakura.ne.jp/OpenCV/py_tutorials/py_calib3d/py_epipolar_geometry/right.jpg
+    """
+    import cv2
+    import numpy as np
+    from matplotlib import pyplot as plt
+
+    def drawlines(img1, img2, lines, pts1, pts2):
+        ''' img1 - image on which we draw the epilines for the points in img2
+            lines - corresponding epilines '''
+        r, c = img1.shape
+        img1 = cv2.cvtColor(img1, cv2.COLOR_GRAY2BGR)
+        img2 = cv2.cvtColor(img2, cv2.COLOR_GRAY2BGR)
+        for r, pt1, pt2 in zip(lines, pts1, pts2):
+            color = tuple(np.random.randint(0, 255, 3).tolist())
+            x0,y0 = map(int, [0, -r[2]/r[1]])
+            x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
+            img1 = cv2.line(img1, (x0,y0), (x1,y1), color,1)
+            img1 = cv2.circle(img1,tuple(pt1),5,color,-1)
+            img2 = cv2.circle(img2,tuple(pt2),5,color,-1)
+        return img1,img2
+
+    ##########
+
+    # Instead SIFT+FLANN, we use SIFT+BFMatch
+
+    img1 = cv2.imread('/home/yk.iwabuchi/.config/sample/pics/epipolar_sample_left.jpg',0)  # left
+    img2 = cv2.imread('/home/yk.iwabuchi/.config/sample/pics/epipolar_sample_right.jpg',0) # right
+
+    sift = cv2.SIFT_create()
+    kp1, des1 = sift.detectAndCompute(img1,None)
+    kp2, des2 = sift.detectAndCompute(img2,None)
+
+    # Brute-Force Matcher
+    bf = cv2.BFMatcher()
+
+    # 
+    matches = bf.knnMatch(des1, des2, k=2)
+
+    # 
+    ratio = 0.65
+    good = []
+    pts1 = []
+    pts2 = []
+    for i, (m, n) in enumerate(matches):
+        if m.distance < ratio * n.distance:
+            good.append([m])
+            pts2.append(kp2[m.trainIdx].pt)
+            pts1.append(kp1[m.queryIdx].pt)
+
+    #------------------------------
+
+    pts1 = np.int32(pts1)
+    pts2 = np.int32(pts2)
+    F, mask = cv2.findFundamentalMat(pts1,pts2,cv2.FM_LMEDS)
+
+    # We select only inlier points
+    pts1 = pts1[mask.ravel()==1]
+    pts2 = pts2[mask.ravel()==1]
+
+    # Find epilines corresponding to points in right image (second image) and
+    # drawing its lines on left image
+    lines1 = cv2.computeCorrespondEpilines(pts2.reshape(-1,1,2), 2,F)
+    lines1 = lines1.reshape(-1,3)
+    img5,img6 = drawlines(img1,img2,lines1,pts1,pts2)
+    # Find epilines corresponding to points in left image (first image) and
+    # drawing its lines on right image
+    lines2 = cv2.computeCorrespondEpilines(pts1.reshape(-1,1,2), 1,F)
+    lines2 = lines2.reshape(-1,3)
+    img3,img4 = drawlines(img2,img1,lines2,pts2,pts1)
+    plt.subplot(121),plt.imshow(img5)
+    plt.subplot(122),plt.imshow(img3)
+    plt.show()
+
+
+############################################################################################
+
 # gutils
-def _main_mpl_plot():
+def _sample_main_mpl_plot():
     from gutils_howto import main_mpl_plot
     main_mpl_plot()
 
+
+def _sample_main_fps():
+    from gutils_howto import main_fps
+    main_fps()
+
+
+# misc utils, cp, lns, rm, head, tail, ...
+def _sample_main_misc():
+    '''
+    misc utils, cp, lns, rm, head, tail, ...
+
+    touch src; cp src dst; rm src; ln -s src dst; 
+    '''
+    from gutils_misc import OPEN, RUN, CPR, LNS, MKDIR, RMRF, RMRF_FULL
+    from gutils_misc import CAT, HEAD, TAIL, HEAD_TAIL, TOUCH, LINE
+    from gutils_misc import WHOAMI, MYTMP
+
+    tmp = MYTMP
+    print(tmp)
+    src = f"{tmp}/xxx.txt"
+    dst = f"{tmp}/yyy.txt"
+    lns = f"{tmp}/zzz.txt"
+    TOUCH(src)
+    CPR(src, dst)
+    RMRF(src)
+    LNS(dst, lns)
+
+
+
+def main_mpl_plot():
+
+    pass
+
+def main_fps():
+    from gutils_time import FPS # XXX: 
+    from time import sleep
+    ''' 
+    report FPS for a process
+
+    class: FPS
+        Arguments:
+            fps: 5
+            msg: "fps label"
+        FPS.tick()
+            
+
+    output:
+        0 1693398288.7831407
+        1 1693398289.2840245
+        2 1693398289.7843204
+        3 1693398290.2849793
+        [   2 fps] fps label4 1693398290.7868018
+        5 1693398291.2874384
+        6 1693398291.788087
+        7 1693398292.2887347
+        8 1693398292.7893777
+        [   2 fps] fps label9 1693398293.2908878
+    '''
+    fps = FPS(5, msg="fps label")
+    for i in range(10):
+        fps.tick()
+        print(i, time())
+        sleep(0.5)
+    pass
+
+############################################################################################
 
 
 
 if __name__ == "__main__":
     _HOME = os.environ["HOME"]
 
-    image_lst = ["baboon.jpg", "board.jpg", "building.jpg", "fruits.jpg",
-                 "lena.jpg", "nujabes.jpg", "Nujabes.webp", "nujabes_illust.jpeg", "stuff.jpg", "rain.jpg"]
-    video_lst = ["Mountain.mp4", "slow_traffic_small.mp4", "vtest.avi"]
+    image_lst = os.listdir(os.path.join(_HOME, ".config/sample/pics"))
+    # image_lst = ["baboon.jpg", "board.jpg", "building.jpg", "fruits.jpg",
+    #              "lena.jpg", "nujabes.jpg", "Nujabes.webp", "nujabes_illust.jpeg", "stuff.jpg", "rain.jpg"]
+    # video_lst = ["Mountain.mp4", "slow_traffic_small.mp4", "vtest.avi"]
+    video_lst = os.listdir(os.path.join(_HOME, ".config/sample/videos"))
     # image_path = os.path.join(_HOME, ".config/sample/pics", image_lst[4])
     image_path = os.path.join(_HOME, ".config/sample/pics", image_lst[9])
     # print(IMAGE_NAME)
@@ -355,4 +537,4 @@ if __name__ == "__main__":
     # gaussianfilter(image)
 
     # gabor_filter(image)
-    _main_mpl_plot()
+    _sample_main_mpl_plot()
