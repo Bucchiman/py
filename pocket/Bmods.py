@@ -21,6 +21,15 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 import matplotlib.pyplot as plt
 
+from sklearn.compose import ColumnTransformer
+from sklearn.datasets import fetch_openml
+from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.preprocessing import RobustScaler, OneHotEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
+
 
 
 def Bucchiman_was_here ():
@@ -90,15 +99,24 @@ def Bshow_pairs (a, b):
     cv.imshow("image", concat_images)
 
 
-def Bfzfprompt4array (array):
-    from pyfzf.pyfzf import FzfPrompt
-    fzf = FzfPrompt()
-    fzf.prompt(array)
+def Bfzfprompt(func):
+    def wrapper(*args, **kwargs):
+        from pyfzf.pyfzf import FzfPrompt
+        fzf = FzfPrompt()
+
+        fzf.prompt(args[0])
+        func(*args, **kwargs)
+    return wrapper
+
+@Bfzfprompt
+def _run_bfzfprompt(lst):
+    print("test")
+
+#_run_bfzfprompt(['hoge', 'kie', 'becori'])
 
 def Bfzfprompt4path (path: str):
     from pyfzf.pyfzf import FzfPrompt
-    fzf
-
+    #fzf
 
 def Bshow_video(path: str):
     """
@@ -299,6 +317,23 @@ def Bcalc_histgram():
 
 ############################################################################################
 # toDo scikit-learn
+
+def dataloader ():
+    sample_dataloader = [""]
+    fetch_openm
+
+def _sample_PCA():
+    """
+        n_components: number of components
+        Reference: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+    """
+    import numpy as np
+    from sklearn.decomposition import PCA
+    X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+    pca = PCA(n_components=2)
+    pca.fit(X)
+    print(f"pca.explained_variance_ratio_: {pca.explained_variance_ratio_}")
+    print(f"pca.singular_values_: {pca.singular_values_}")
 
 
 def _sample_kmeans():
@@ -536,5 +571,5 @@ if __name__ == "__main__":
     image = cv.imread(image_path)
     # gaussianfilter(image)
 
-    # gabor_filter(image)
-    _sample_main_mpl_plot()
+    Bgabor_filter(image)
+    #_sample_main_mpl_plot()
