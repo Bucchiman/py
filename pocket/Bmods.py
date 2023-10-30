@@ -170,7 +170,7 @@ def add(x, y):
     return x + y
 
 
-def Bimage_filter(func):
+def Bimage_filter (func):
     def wrapper(*args, **kwargs):
         processing_image = func(*args, **kwargs)
         concat_images = cv.hconcat([args[0], processing_image])
@@ -184,17 +184,17 @@ def Bimage_filter(func):
 
 @Gtimer
 @Bimage_filter
-def gaussianfilter(image):
+def gaussianfilter (image):
     return cv.GaussianBlur(image, (5, 5), 0)
 
 @Gtimer
 @Bimage_filter
-def medianfilter(image):
+def medianfilter (image):
     return cv.medianBlur(image, 7)
 
 @Gtimer
 @Bimage_filter
-def bilateralfilter(image):
+def bilateralfilter (image):
     return cv.bilateralFilter(image, 9, 75, 75)
 
 
@@ -240,7 +240,7 @@ def Bgabor_filter (img):
     sliders = [ksize, sigma, lambd, gamma, psi, theta]
     
     
-    def update(val):
+    def update (val):
         # on slider update recalculate gabor kernel
         g_kernel = cv.getGaborKernel(ksize=(ksize.val, ksize.val),
                                       sigma=sigma.val,
@@ -268,7 +268,7 @@ def Bgabor_filter (img):
     button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
     
     
-    def reset(event):
+    def reset (event):
         for slider in sliders:
             slider.reset()
 
@@ -279,7 +279,7 @@ def Bgabor_filter (img):
 ################################################################
 
 
-def Bimagegrid(func):
+def Bimagegrid (func):
     """
         image grid sample
         https://qiita.com/mtb_beta/items/d257519b018b8cd0cc2e
@@ -292,7 +292,7 @@ def Bimagegrid(func):
     return wrapper
 
 @Bimagegrid
-def _run():
+def _run ():
     # toDo
     pass
 
@@ -305,6 +305,82 @@ def _run():
 def Bcalc_histgram():
     pass
 
+
+def _sample_plot ():
+    """
+        Reference: https://matplotlib.org/stable/plot_types/basic/plot.html#sphx-glr-plot-types-basic-plot-py
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.style.use('_mpl-gallery')
+
+    # make data
+    x = np.linspace(0, 10, 100)
+    y = 4 + 2 * np.sin(2 * x)
+
+    # plot
+    fig, ax = plt.subplots()
+
+    ax.plot(x, y, linewidth=2.0)
+
+    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+           ylim=(0, 8), yticks=np.arange(1, 8))
+
+    plt.show()
+
+def _sample_scatter ():
+    """
+        Reference: https://matplotlib.org/stable/plot_types/basic/scatter_plot.html#sphx-glr-plot-types-basic-scatter-plot-py
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.style.use('_mpl-gallery')
+
+    # make the data
+    np.random.seed(3)
+    x = 4 + np.random.normal(0, 2, 24)
+    y = 4 + np.random.normal(0, 2, len(x))
+    # size and color:
+    sizes = np.random.uniform(15, 80, len(x))
+    colors = np.random.uniform(15, 80, len(x))
+
+    # plot
+    fig, ax = plt.subplots()
+
+    ax.scatter(x, y, s=sizes, c=colors, vmin=0, vmax=100)
+
+    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+           ylim=(0, 8), yticks=np.arange(1, 8))
+
+    plt.show()
+
+def _sample_bar ():
+    """
+        Reference: https://matplotlib.org/stable/plot_types/basic/bar.html#sphx-glr-plot-types-basic-bar-py
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.style.use('_mpl-gallery')
+
+    # make data:
+    x = 0.5 + np.arange(8)
+    y = [4.8, 5.5, 3.5, 4.6, 6.5, 6.6, 2.6, 3.0]
+
+    # plot
+    fig, ax = plt.subplots()
+
+    ax.bar(x, y, width=1, edgecolor="white", linewidth=0.7)
+
+    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+           ylim=(0, 8), yticks=np.arange(1, 8))
+
+    plt.show()
+
+
+#def __Sample_matplotlib ():
 
 ############################################################################################
 # toDo pandas
@@ -322,7 +398,7 @@ def dataloader ():
     sample_dataloader = [""]
     fetch_openm
 
-def _sample_PCA():
+def _sample_PCA ():
     """
         n_components: number of components
         Reference: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
@@ -336,7 +412,7 @@ def _sample_PCA():
     print(f"pca.singular_values_: {pca.singular_values_}")
 
 
-def _sample_kmeans():
+def _sample_kmeans ():
     """
         Reference: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
     """
@@ -359,7 +435,7 @@ def _sample_kmeans():
 
 ############################################################################################
 # Fractal
-def Bcreate_fractal_image():
+def Bcreate_fractal_image ():
     """
         Model:      IFS
         Keywords:   FractalDB-1k
@@ -398,7 +474,7 @@ def Bcreate_fractal_image():
 
 # epipolar
 
-def create_epipolar():
+def create_epipolar ():
     """
         Reference:  https://docs.opencv.org/4.8.0/da/de9/tutorial_py_epipolar_geometry.html
                     https://whitewell.sakura.ne.jp/OpenCV/py_tutorials/py_calib3d/py_epipolar_geometry/py_epipolar_geometry.html
@@ -481,18 +557,18 @@ def create_epipolar():
 ############################################################################################
 
 # gutils
-def _sample_main_mpl_plot():
+def _sample_main_mpl_plot ():
     from gutils_howto import main_mpl_plot
     main_mpl_plot()
 
 
-def _sample_main_fps():
+def _sample_main_fps ():
     from gutils_howto import main_fps
     main_fps()
 
 
 # misc utils, cp, lns, rm, head, tail, ...
-def _sample_main_misc():
+def _sample_main_misc ():
     '''
     misc utils, cp, lns, rm, head, tail, ...
 
@@ -514,11 +590,16 @@ def _sample_main_misc():
 
 
 
-def main_mpl_plot():
+def main_mpl_plot ():
 
     pass
 
-def main_fps():
+
+def main_fps_fixed ():
+    pass
+
+
+def main_fps ():
     from gutils_time import FPS # XXX: 
     from time import sleep
     ''' 
