@@ -57,7 +57,7 @@ def Bucchiman_was_here ():
 
 
 # Do you like gulliver codes??????????????????
-if 1:
+if 0:
     from gutils_misc import OPEN, RUN, CPR, LNS, MKDIR, RMRF, RMRF_FULL
     from gutils_misc import CAT, HEAD, TAIL, HEAD_TAIL, TOUCH, LINE
     from gutils_misc import WHOAMI, MYTMP
@@ -122,9 +122,14 @@ def Bfzfprompt(func):
         fzf = FzfPrompt()
 
         results = fzf.prompt(args[0])        # ['hoge', 'kie', 'becori']
-        func(results, **kwargs)
+        func(results, args[1], **kwargs)
 
     return wrapper
+
+@Bfzfprompt
+def _run_bfzfprompt(lst, obj):
+    method = getattr(obj, lst[0])
+    method()
 
 
 #_run_bfzfprompt(['hoge', 'kie', 'becori'])
@@ -895,15 +900,8 @@ def main_fps ():
 
 ############################################################################################
 
-sample4matplotlib = Sample4Matplotlib()
 
-@Bfzfprompt
-def _run_bfzfprompt(lst):
-    method = getattr(sample4matplotlib, lst[0])
-    method()
 
-methods = reflection_methods(sample4matplotlib)
-_run_bfzfprompt(methods)
 
 if __name__ == "__main__":
     _HOME = os.environ["HOME"]
@@ -925,4 +923,6 @@ if __name__ == "__main__":
     # Bgabor_filter(image)
     #_sample_main_mpl_plot()
     sample4matplotlib = Sample4Matplotlib()
+    methods = reflection_methods(sample4matplotlib)
+    _run_bfzfprompt(methods, sample4matplotlib)
 
