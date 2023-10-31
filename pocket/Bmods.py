@@ -220,7 +220,23 @@ def bilateralfilter (image):
 
 
 ################################################################
+# gpio
 
+class Sample4GPIO (object):
+    def _gpio_mcp3008_3002 (self):
+        """
+        # Reference: https://www.denshi.club/pc/raspi/5raspberry-pi-zeroiot9a-d6mcp3002.html
+                     https://qiita.com/M_Study/items/fc0df5069c76418ef7e2
+                     https://101010.fun/raspberry-pi-adc-mcp3008.html
+        CH0	1   16  Vdd     3.3V電源
+        CH1	2   15  Vref    基準電圧入力
+        CH2	3   14  AGND    アナログ・グラウンド
+        CH3	4   13  CLK
+        CH4	5   12  Dout
+        CH5	6   11  Din
+        CH6	7   10  /CS・SHDN
+        CH7	8    9  DGND    ディジタル・グラウン
+        """
 
 
 ################################################################
