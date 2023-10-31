@@ -344,13 +344,20 @@ def scraping ():
 ############################################################################################
 # toDo pytorch
 
+
+
+############################################################################################
+# Scraping web
+
+
 ############################################################################################
 # toDo matplotlib
 def Bcalc_histgram():
     pass
 
-class Sample4Matplotlib (object):
-    def _mpl_axes_plot (self):
+class MyMatplotlib (object):
+    @classmethod
+    def _sample_axes_plot (self):
         """
         Description
     
@@ -379,8 +386,8 @@ class Sample4Matplotlib (object):
     
         plt.show()
     
-    
-    def _mpl_zoomin_zoomout (self):
+    @classmethod
+    def _sample_zoomin_zoomout (self):
         """
         Description
             zoomin zoomout
@@ -423,7 +430,8 @@ class Sample4Matplotlib (object):
     
         plt.show()
     
-    def _mpl_axes_demo (self):
+    @classmethod
+    def _sample_axes_demo (self):
         """
         Description
             
@@ -466,8 +474,8 @@ class Sample4Matplotlib (object):
     
         plt.show()
     
-    
-    def _mpl_shared_square_axes (self):
+    @classmethod
+    def _sample_shared_square_axes (self):
         """
         Description
             share y axies
@@ -490,7 +498,8 @@ class Sample4Matplotlib (object):
     
         plt.show()
     
-    def _mpl_box_aspect (self):
+    @classmethod
+    def _sample_box_aspect (self):
         """
         Description
     
@@ -511,8 +520,8 @@ class Sample4Matplotlib (object):
     
         plt.show()
     
-    
-    def _mpl_sample_align_labels (self):
+    @classmethod
+    def _sample_align_labels (self):
         """
         Description
     
@@ -544,8 +553,8 @@ class Sample4Matplotlib (object):
         fig.align_labels()  # same as fig.align_xlabels(); fig.align_ylabels()
         plt.show()
     
-    
-    def _mpl_sample_user_defined (self):
+    @classmethod
+    def _sample_user_defined (self):
         """
         Description
             user defined on labels (ADVANCED)
@@ -588,8 +597,8 @@ class Sample4Matplotlib (object):
         plt.show()
     
     
-    
-    def _mpl_sample_plot (self):
+    @classmethod
+    def _sample_plot (self):
         """
             Reference: https://matplotlib.org/stable/plot_types/basic/plot.html#sphx-glr-plot-types-basic-plot-py
         """
@@ -612,7 +621,8 @@ class Sample4Matplotlib (object):
     
         plt.show()
     
-    def _mpl_sample_scatter (self):
+    @classmethod
+    def _sample_scatter (self):
         """
             Reference: https://matplotlib.org/stable/plot_types/basic/scatter_plot.html#sphx-glr-plot-types-basic-scatter-plot-py
         """
@@ -638,8 +648,9 @@ class Sample4Matplotlib (object):
                ylim=(0, 8), yticks=np.arange(1, 8))
     
         plt.show()
-    
-    def _mpl_sample_bar (self):
+
+    @classmethod
+    def _sample_bar (self):
         """
             Reference: https://matplotlib.org/stable/plot_types/basic/bar.html#sphx-glr-plot-types-basic-bar-py
         """
@@ -663,7 +674,6 @@ class Sample4Matplotlib (object):
         plt.show()
 
 
-#def __Sample_matplotlib ():
 
 ############################################################################################
 # toDo pandas
@@ -938,7 +948,7 @@ if __name__ == "__main__":
 
     # Bgabor_filter(image)
     #_sample_main_mpl_plot()
-    sample4matplotlib = Sample4Matplotlib()
-    methods = reflection_methods(sample4matplotlib)
-    _run_bfzfprompt(methods, sample4matplotlib)
+    mymatplotlib = MyMatplotlib()
+    methods = reflection_methods(mymatplotlib)
+    _run_bfzfprompt(methods, mymatplotlib)
 
