@@ -16,6 +16,7 @@ import cv2 as cv
 import numpy as np
 import scipy as cp
 import pandas as pd
+import inspect
 from time import time
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
@@ -30,6 +31,22 @@ from sklearn.preprocessing import RobustScaler, OneHotEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
+
+def reflection_methods (target_obj):
+    """
+    Description
+
+    Parameters
+
+    Return
+
+    Reference
+        https://blog.goo.ne.jp/dak-ikd/e/fa1766c5ded886ac513ef3e761551560
+    """
+    import inspect
+    function_lst = list(map(lambda x: x[0], inspect.getmembers(target_obj)))
+
+    return function_lst
 
 
 def Bucchiman_was_here ():
@@ -104,13 +121,11 @@ def Bfzfprompt(func):
         from pyfzf.pyfzf import FzfPrompt
         fzf = FzfPrompt()
 
-        fzf.prompt(args[0])
-        func(*args, **kwargs)
+        results = fzf.prompt(args[0])        # ['hoge', 'kie', 'becori']
+        func(results, **kwargs)
+
     return wrapper
 
-@Bfzfprompt
-def _run_bfzfprompt(lst):
-    print("test")
 
 #_run_bfzfprompt(['hoge', 'kie', 'becori'])
 
@@ -297,6 +312,14 @@ def _run ():
     pass
 
 
+def scraping ():
+    from urllib.request import urlopen
+    url = "https://matplotlib.org/stable/gallery/index"
+    page = urlopen(url)
+    html_bytes = page.read()
+    html = html_bytes.decode("utf-8")
+    title_index = html.find("<title>")
+
 ############################################################################################
 # toDo pytorch
 
@@ -305,79 +328,318 @@ def _run ():
 def Bcalc_histgram():
     pass
 
-
-def _sample_plot ():
-    """
-        Reference: https://matplotlib.org/stable/plot_types/basic/plot.html#sphx-glr-plot-types-basic-plot-py
-    """
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    plt.style.use('_mpl-gallery')
-
-    # make data
-    x = np.linspace(0, 10, 100)
-    y = 4 + 2 * np.sin(2 * x)
-
-    # plot
-    fig, ax = plt.subplots()
-
-    ax.plot(x, y, linewidth=2.0)
-
-    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-           ylim=(0, 8), yticks=np.arange(1, 8))
-
-    plt.show()
-
-def _sample_scatter ():
-    """
-        Reference: https://matplotlib.org/stable/plot_types/basic/scatter_plot.html#sphx-glr-plot-types-basic-scatter-plot-py
-    """
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    plt.style.use('_mpl-gallery')
-
-    # make the data
-    np.random.seed(3)
-    x = 4 + np.random.normal(0, 2, 24)
-    y = 4 + np.random.normal(0, 2, len(x))
-    # size and color:
-    sizes = np.random.uniform(15, 80, len(x))
-    colors = np.random.uniform(15, 80, len(x))
-
-    # plot
-    fig, ax = plt.subplots()
-
-    ax.scatter(x, y, s=sizes, c=colors, vmin=0, vmax=100)
-
-    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-           ylim=(0, 8), yticks=np.arange(1, 8))
-
-    plt.show()
-
-def _sample_bar ():
-    """
-        Reference: https://matplotlib.org/stable/plot_types/basic/bar.html#sphx-glr-plot-types-basic-bar-py
-    """
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    plt.style.use('_mpl-gallery')
-
-    # make data:
-    x = 0.5 + np.arange(8)
-    y = [4.8, 5.5, 3.5, 4.6, 6.5, 6.6, 2.6, 3.0]
-
-    # plot
-    fig, ax = plt.subplots()
-
-    ax.bar(x, y, width=1, edgecolor="white", linewidth=0.7)
-
-    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-           ylim=(0, 8), yticks=np.arange(1, 8))
-
-    plt.show()
+class Sample4Matplotlib (object):
+    def _mpl_axes_plot (self):
+        """
+        Description
+    
+    
+        Parameters
+        ----------
+        ----------
+        Return
+            image (show)
+    
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_props.html#sphx-glr-gallery-subplots-axes-and-figures-axes-props-py
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        t = np.arange(0.0, 2.0, 0.01)
+        s = np.sin(2 * np.pi * t)
+    
+        fig, ax = plt.subplots()
+        ax.plot(t, s)
+    
+        ax.grid(True, linestyle='-.')
+        ax.tick_params(labelcolor='r', labelsize='medium', width=3)
+    
+        plt.show()
+    
+    
+    def _mpl_zoomin_zoomout (self):
+        """
+        Description
+            zoomin zoomout
+    
+        Parameters
+        ----------
+        ----------
+        Return
+            image (show)
+    
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_margins.html#sphx-glr-gallery-subplots-axes-and-figures-axes-margins-py
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        from matplotlib.patches import Polygon
+    
+    
+        def f(t):
+            return np.exp(-t) * np.cos(2*np.pi*t)
+    
+    
+        t1 = np.arange(0.0, 3.0, 0.01)
+    
+        ax1 = plt.subplot(212)
+        ax1.margins(0.05)           # Default margin is 0.05, value 0 means fit
+        ax1.plot(t1, f(t1))
+    
+        ax2 = plt.subplot(221)
+        ax2.margins(2, 2)           # Values >0.0 zoom out
+        ax2.plot(t1, f(t1))
+        ax2.set_title('Zoomed out')
+    
+        ax3 = plt.subplot(222)
+        ax3.margins(x=0, y=-0.25)   # Values in (-0.5, 0.0) zooms in to center
+        ax3.plot(t1, f(t1))
+        ax3.set_title('Zoomed in')
+    
+        plt.show()
+    
+    def _mpl_axes_demo (self):
+        """
+        Description
+            
+    
+        Parameters
+        Return
+            image (show)
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_demo.html#sphx-glr-gallery-subplots-axes-and-figures-axes-demo-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        np.random.seed(19680801)  # Fixing random state for reproducibility.
+    
+        # create some data to use for the plot
+        dt = 0.001
+        t = np.arange(0.0, 10.0, dt)
+        r = np.exp(-t[:1000] / 0.05)  # impulse response
+        x = np.random.randn(len(t))
+        s = np.convolve(x, r)[:len(x)] * dt  # colored noise
+    
+        fig, main_ax = plt.subplots()
+        main_ax.plot(t, s)
+        main_ax.set_xlim(0, 1)
+        main_ax.set_ylim(1.1 * np.min(s), 2 * np.max(s))
+        main_ax.set_xlabel('time (s)')
+        main_ax.set_ylabel('current (nA)')
+        main_ax.set_title('Gaussian colored noise')
+    
+        # this is an inset axes over the main axes
+        right_inset_ax = fig.add_axes([.65, .6, .2, .2], facecolor='k')
+        right_inset_ax.hist(s, 400, density=True)
+        right_inset_ax.set(title='Probability', xticks=[], yticks=[])
+    
+        # this is another inset axes over the main axes
+        left_inset_ax = fig.add_axes([.2, .6, .2, .2], facecolor='k')
+        left_inset_ax.plot(t[:len(r)], r)
+        left_inset_ax.set(title='Impulse response', xlim=(0, .2), xticks=[], yticks=[])
+    
+        plt.show()
+    
+    
+    def _mpl_shared_square_axes (self):
+        """
+        Description
+            share y axies
+    
+        Parameters
+    
+        Return
+    
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_box_aspect.html#sphx-glr-gallery-subplots-axes-and-figures-axes-box-aspect-py
+        """
+    
+        fig2, (ax, ax2) = plt.subplots(ncols=2, sharey=True)
+    
+        ax.plot([1, 5], [0, 10])
+        ax2.plot([100, 500], [10, 15])
+    
+        ax.set_box_aspect(1)
+        ax2.set_box_aspect(1)
+    
+        plt.show()
+    
+    def _mpl_box_aspect (self):
+        """
+        Description
+    
+        Parameters
+    
+        Return      empty box
+    
+        Reference
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        fig1, ax = plt.subplots()
+    
+        ax.set_xlim(300, 400)
+        ax.set_box_aspect(1)
+    
+        plt.show()
+    
+    
+    def _mpl_sample_align_labels (self):
+        """
+        Description
+    
+        Parameters
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/align_labels_demo.html#sphx-glr-gallery-subplots-axes-and-figures-align-labels-demo-py
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        import matplotlib.gridspec as gridspec
+    
+        fig = plt.figure(tight_layout=True)
+        gs = gridspec.GridSpec(2, 2)
+    
+        ax = fig.add_subplot(gs[0, :])
+        ax.plot(np.arange(0, 1e6, 1000))
+        ax.set_ylabel('YLabel0')
+        ax.set_xlabel('XLabel0')
+    
+        for i in range(2):
+            ax = fig.add_subplot(gs[1, i])
+            ax.plot(np.arange(1., 0., -0.1) * 2000., np.arange(1., 0., -0.1))
+            ax.set_ylabel('YLabel1 %d' % i)
+            ax.set_xlabel('XLabel1 %d' % i)
+            if i == 0:
+                ax.tick_params(axis='x', rotation=55)
+        fig.align_labels()  # same as fig.align_xlabels(); fig.align_ylabels()
+        plt.show()
+    
+    
+    def _mpl_sample_user_defined (self):
+        """
+        Description
+            user defined on labels (ADVANCED)
+    
+        Parameters
+    
+        Return
+    
+        Reference
+        """
+        
+        import matplotlib.pyplot as plt
+    
+        import matplotlib.transforms as mtransforms
+    
+        fig, ax = plt.subplots()
+        ax.plot(range(10))
+        ax.set_yticks([2, 5, 7], labels=['really, really, really', 'long', 'labels'])
+    
+    
+        def on_draw(event):
+            bboxes = []
+            for label in ax.get_yticklabels():
+                # Bounding box in pixels
+                bbox_px = label.get_window_extent()
+                # Transform to relative figure coordinates. This is the inverse of
+                # transFigure.
+                bbox_fig = bbox_px.transformed(fig.transFigure.inverted())
+                bboxes.append(bbox_fig)
+            # the bbox that bounds all the bboxes, again in relative figure coords
+            bbox = mtransforms.Bbox.union(bboxes)
+            if fig.subplotpars.left < bbox.width:
+                # Move the subplot left edge more to the right
+                fig.subplots_adjust(left=1.1*bbox.width)  # pad a little
+                fig.canvas.draw()
+    
+    
+        fig.canvas.mpl_connect('draw_event', on_draw)
+    
+        plt.show()
+    
+    
+    
+    def _mpl_sample_plot (self):
+        """
+            Reference: https://matplotlib.org/stable/plot_types/basic/plot.html#sphx-glr-plot-types-basic-plot-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        plt.style.use('_mpl-gallery')
+    
+        # make data
+        x = np.linspace(0, 10, 100)
+        y = 4 + 2 * np.sin(2 * x)
+    
+        # plot
+        fig, ax = plt.subplots()
+    
+        ax.plot(x, y, linewidth=2.0)
+    
+        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+               ylim=(0, 8), yticks=np.arange(1, 8))
+    
+        plt.show()
+    
+    def _mpl_sample_scatter (self):
+        """
+            Reference: https://matplotlib.org/stable/plot_types/basic/scatter_plot.html#sphx-glr-plot-types-basic-scatter-plot-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        plt.style.use('_mpl-gallery')
+    
+        # make the data
+        np.random.seed(3)
+        x = 4 + np.random.normal(0, 2, 24)
+        y = 4 + np.random.normal(0, 2, len(x))
+        # size and color:
+        sizes = np.random.uniform(15, 80, len(x))
+        colors = np.random.uniform(15, 80, len(x))
+    
+        # plot
+        fig, ax = plt.subplots()
+    
+        ax.scatter(x, y, s=sizes, c=colors, vmin=0, vmax=100)
+    
+        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+               ylim=(0, 8), yticks=np.arange(1, 8))
+    
+        plt.show()
+    
+    def _mpl_sample_bar (self):
+        """
+            Reference: https://matplotlib.org/stable/plot_types/basic/bar.html#sphx-glr-plot-types-basic-bar-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        plt.style.use('_mpl-gallery')
+    
+        # make data:
+        x = 0.5 + np.arange(8)
+        y = [4.8, 5.5, 3.5, 4.6, 6.5, 6.6, 2.6, 3.0]
+    
+        # plot
+        fig, ax = plt.subplots()
+    
+        ax.bar(x, y, width=1, edgecolor="white", linewidth=0.7)
+    
+        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+               ylim=(0, 8), yticks=np.arange(1, 8))
+    
+        plt.show()
 
 
 #def __Sample_matplotlib ():
@@ -633,7 +895,15 @@ def main_fps ():
 
 ############################################################################################
 
+sample4matplotlib = Sample4Matplotlib()
 
+@Bfzfprompt
+def _run_bfzfprompt(lst):
+    method = getattr(sample4matplotlib, lst[0])
+    method()
+
+methods = reflection_methods(sample4matplotlib)
+_run_bfzfprompt(methods)
 
 if __name__ == "__main__":
     _HOME = os.environ["HOME"]
@@ -649,8 +919,10 @@ if __name__ == "__main__":
     # show_image(IMAGE_NAME)
     # show_video(os.path.join(_HOME, ".config/sample/videos", video_lst[0]))
     # add(2, 4)
-    image = cv.imread(image_path)
+    # image = cv.imread(image_path)
     # gaussianfilter(image)
 
-    Bgabor_filter(image)
+    # Bgabor_filter(image)
     #_sample_main_mpl_plot()
+    sample4matplotlib = Sample4Matplotlib()
+
