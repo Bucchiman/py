@@ -87,6 +87,65 @@ if 1:
     from gutils_model_params_info_sparsity import from_numpy, to_numpy
 
 
+
+def _simple_httpserver ():
+    """
+    Description sample code for multithread
+                
+
+    Parameters
+
+    Return
+
+    Reference   質実剛健 Rust Interface
+    """
+
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    from socketserver import ThreadingMixIn
+
+    hostName = "127.0.0.1"      # サーバのlistenアドレス
+    serverPort = 8080           # サーバのlistenポート
+
+    class Handler (BaseHTTPRequestHandler):
+        def do_GET (self):
+            if self.path == "/":
+                self.send_response(200)
+                self.send_header ("Content-type", "text/plain")
+
+                self.end_headers()
+                self.wfile.write(bytes("Hello, world.", "utf-8"))
+
+            else:
+                self.send_response(404)
+                self.send_header("Content-type", "text/plain")
+
+                self.end_headers()
+                self.wfile.write(bytes("Not Found", "utf-8"))
+
+        def log_message (self, format, *args):
+            return
+
+    class ThreadedHTTPServer  (ThreadingMixIn, HTTPServer):
+        """ Handle requests in a separate thread. """
+
+
+    # 標準ライブラリ上で定義したハンドラの機能を持つマルチスレッドサーバを初期化
+    server = ThreadedHTTPServer((hostName, serverPort), Handler)
+    print("Server started http://%s:%s" % (hostName, serverPort))
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    server.server_close()
+    print("Server stopped.")
+
+
+# def
+
+
+
 def Bshow_image (path: str):
     """
         Arguments:
@@ -948,7 +1007,12 @@ if __name__ == "__main__":
 
     # Bgabor_filter(image)
     #_sample_main_mpl_plot()
-    mymatplotlib = MyMatplotlib()
-    methods = reflection_methods(mymatplotlib)
-    _run_bfzfprompt(methods, mymatplotlib)
+
+    # mymatplotlib
+    # mymatplotlib = MyMatplotlib()
+    # methods = reflection_methods(mymatplotlib)
+    # _run_bfzfprompt(methods, mymatplotlib)
+
+
+    _simple_httpserver()
 
