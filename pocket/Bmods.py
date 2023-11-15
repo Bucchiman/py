@@ -161,8 +161,9 @@ def Bshow_image (path: str):
     # closing all open windows
     cv.destroyAllWindows()
 
-def Bshow_triad ():
-    pass
+def Bshow_triplet (a, b, c):
+    concat_images = cv.hconcat([a, b, c])
+    return concat_images
 
 def Bshow_pairs (a, b):
     """
@@ -986,8 +987,6 @@ def main_fps ():
 ############################################################################################
 
 
-
-
 if __name__ == "__main__":
     _HOME = os.environ["HOME"]
 
@@ -1013,6 +1012,4 @@ if __name__ == "__main__":
     # methods = reflection_methods(mymatplotlib)
     # _run_bfzfprompt(methods, mymatplotlib)
 
-
     _simple_httpserver()
-
