@@ -158,14 +158,19 @@ def matplotlib_fig2image():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# ------------------------------------------- 
+# -------------------------------------------
 
 # animation image - histogram
 
 # reference: https://nrsyed.com/2018/02/08/real-time-video-histograms-with-opencv-and-python/
 
-# ------------------------------------------- 
+# -------------------------------------------
 # image processing
 
-# https://datacarpentry.org/image-processing/aio.html
-# ------------------------------------------- 
+# Reference:        https://datacarpentry.org/image-processing/aio.html
+# -------------------------------------------
+# mouse event
+
+# Reference:        https://docs.opencv.org/3.1.0/db/d5b/tutorial_py_mouse_handling.html
+
+# -------------------------------------------
