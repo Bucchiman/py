@@ -342,3 +342,6 @@ while(1):
  
 capture.release()
 cv2.destroyAllWindows()
+
+# Reference         https://www.appsloveworld.com/opencv/100/18/quiver-plot-with-optical-flow?expand_article=1
+#                   https://qiita.com/yusuke_s_yusuke/items/03243490b1fd765fe61f
