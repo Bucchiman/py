@@ -32,6 +32,107 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
 
+# -------------------------------------------
+# basic
+import logging
+from logging import getLogger, config
+
+def get_logger(file_name: str, log_dir="../logs"):
+    """TL;DR
+    Description
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+    get_logger()
+    ----------
+    Reference
+    ----------
+    """
+    os.makedirs(os.path.join(log_dir, make_date_log_directory()), exist_ok=True)
+    log_path = os.path.join(log_dir, file_name)
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.info("Log file is %s." % log_path)
+    return logger
+
+def make_date_log_directory():
+    from datetime import datetime
+    return datetime.now().strftime(r"%Y_%m_%d_%H_%M")
+
+import argparse
+def get_base_parser():
+    base_parser = argparse.ArgumentParser(add_help=False)
+    base_parser.add_argument('--log_dir', type=str, default="../logs", help="log directory specify")
+    base_parser.add_argument('--log_file', type=str, default=make_date_log_directory(), help="log file specify")
+    base_parser.add_argument('--config_dir', type=str, default="../params")
+    base_parser.add_argument('--config_file', type=str, default="config.yaml")
+    base_parser.add_argument('--results_dir', type=str, default="../results", help="results dir specify")
+    base_parser.add_argument('--data_dir', type=str, default="../data", help="data directory specify")
+    # parser.add_argument('--method_name', type="str", default="make_date_log_directory", help="method name here in utils.py")
+
+    # parser.add_argument('arg1')     # 必須の引数
+    # parser.add_argument('-a', 'arg')    # 省略形
+    # parser.add_argument('--flag', action='store_true')  # flag
+    # parser.add_argument('--strlist', required=True, nargs="*", type=str, help='a list of strings') # --strlist hoge fuga geho
+    # parser.add_argument('--method', type=str)
+    # parser.add_argument('--fruit', type=str, default='apple', choices=['apple', 'banana'], required=True)
+    # parser.add_argument('--address', type=lambda x: list(map(int, x.split('.'))), help="IP address") # --address 192.168.31.150 --> [192, 168, 31, 150]
+    # parser.add_argument('--colors', nargs='*', required=True)
+
+    return base_parser
+
+
+def get_ml_args():
+    ml_parser = argparse.ArgumentParser(parents=[get_base_parser()])
+    ml_parser.add_argument('--train_csv', type=str, default="train.csv", help="train.csv specify")
+    ml_parser.add_argument('--test_csv', type=str, default="test.csv", help="test.csv specify")
+    ml_parser.add_argument('--target_col', type=str, required=True, help="target to predict")
+    ml_parser.add_argument('--index_col', type=str, required=True, help="sample id")
+    ml_parser.add_argument('-e', '--eda', action='store_true', help="eda flag")
+    ml_parser.add_argument('-p', '--preprocessing', action='store_true', help="preprocessing flag")
+    ml_parser.add_argument('-f', '--fitting', action='store_true', help="fitting flag")
+    ml_parser.add_argument('--problem_type', type=str, required=True, choices=['Regression', 'Classification'], help="problem type[Regression, Classification]")
+    ml_parser.add_argument('--save_csv_dir', type=str, default="../preprocessing_dir", help="save dir specify")
+    ml_parser.add_argument('--imshow', action='store_true')
+    args = ml_parser.parse_args()
+    return args
+
+
+def get_dl_args():
+    dl_parser = argparse.ArgumentParser(parents=[get_base_parser()])
+    dl_parser.add_argument('--train_img_dir', type=str, required=False)
+    dl_parser.add_argument('--test_img_dir', type=str, required=False)
+    dl_parser.add_argument('--train_label_file', type=str, required=False)
+    dl_parser.add_argument('--batch_size', type=int, default=5)
+    dl_parser.add_argument('--model_name', type=str, default='resnet18')
+    dl_parser.add_argument('--gpus', type=str, default="all", choices=['all', 'cuda:0'])
+    args = dl_parser.parse_args()
+    return args
+
+
+# -------------------------------------------
+
+
 def reflection_methods (target_obj):
     """
     Description
@@ -75,7 +176,7 @@ if 0:
 
 
 
-if 1:
+if 0:
     from gutils_misc import nx_npz, nx_npz_load
     from gutils_numpy import np_savetxt, np_loadtxt
     from gutils_grid import loadnpz, savenpz, asArray
@@ -177,22 +278,47 @@ def Bshow_pairs (a, b):
 
 
 def Bfzfprompt(func):
+    """fzf prompt
+    Description
+    ----------
+    
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+    @Bfzfprompt
+    def _run_bfzfprompt(lst):
+        print(lst)
+
+
+    _run_bfzfprompt(['hoge', 'kie', 'becori'])
+    ----------
+    Reference
+    ----------
+    """
     def wrapper(*args, **kwargs):
         from pyfzf.pyfzf import FzfPrompt
         fzf = FzfPrompt()
-
         results = fzf.prompt(args[0])        # ['hoge', 'kie', 'becori']
-        func(results, args[1], **kwargs)
-
+        func(results, **kwargs)
     return wrapper
 
 @Bfzfprompt
-def _run_bfzfprompt(lst, obj):
-    method = getattr(obj, lst[0])
-    method()
+def _run_bfzfprompt(lst):
+    print(lst)
 
 
-#_run_bfzfprompt(['hoge', 'kie', 'becori'])
+# _run_bfzfprompt(['hoge', 'kie', 'becori'])
 
 def Bfzfprompt4path (path: str):
     from pyfzf.pyfzf import FzfPrompt
@@ -306,71 +432,6 @@ class Sample4GPIO (object):
 
 
 ################################################################
-# gabor filter
-################################################################
-def Bgabor_filter (img):
-    """
-        Reference: https://github.com/intsynko/gabor_dashboard/tree/main
-    """
-
-    # read img and set gray color
-    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-
-
-    # dashboard settings
-    fig, (ax, ax_2) = plt.subplots(1, 2)
-    plt.subplots_adjust(left=0.25, bottom=0.45)
-    
-    # create slider spaces
-    axcolor = 'lightgoldenrodyellow'
-    ax_sliders = [plt.axes([0.25, 0.1 + 0.05 * i, 0.65, 0.03], facecolor=axcolor) for i in range(6)]
-    
-    # define parameter sliders
-    ksize = Slider(ax_sliders[0], 'ksize', 1, 40, valinit=21, valstep=1)
-    sigma = Slider(ax_sliders[1], 'sigma', 0.1, 20.0, valinit=8, valstep=0.1)
-    lambd = Slider(ax_sliders[2], 'lambd', 0.1, 20.0, valinit=10, valstep=0.1)
-    gamma = Slider(ax_sliders[3], 'gamma', 0.1, 1, valinit=0.5, valstep=0.05)
-    psi = Slider(ax_sliders[4], 'psi', -10, 10, valinit=0, valstep=1)
-    theta = Slider(ax_sliders[5], 'theta', -5, 5, valinit=0, valstep=0.1)
-    
-    sliders = [ksize, sigma, lambd, gamma, psi, theta]
-    
-    
-    def update (val):
-        # on slider update recalculate gabor kernel
-        g_kernel = cv.getGaborKernel(ksize=(ksize.val, ksize.val),
-                                      sigma=sigma.val,
-                                      theta=np.pi / 4 * theta.val,
-                                      lambd=lambd.val,
-                                      gamma=gamma.val,
-                                      psi=psi.val,
-                                      ktype=cv.CV_32F)
-        # recalculate img result
-        res = cv.filter2D(img, cv.CV_8UC3, g_kernel)
-    
-        # show new img and gabor kernel
-        ax.imshow(res, interpolation="nearest", cmap='gray')
-        ax.set_title('gabor result on img', fontsize=10)
-        ax_2.imshow(g_kernel, interpolation="nearest", cmap='gray')
-        ax_2.set_title('g_kernel', fontsize=10)
-    
-    
-    for i in sliders:
-        i.on_changed(update)
-    
-    update(None)
-    
-    resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
-    button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
-    
-    
-    def reset (event):
-        for slider in sliders:
-            slider.reset()
-
-
-    button.on_clicked(reset)
-    plt.show()
 
 ################################################################
 
@@ -405,6 +466,301 @@ def scraping ():
 # toDo pytorch
 
 
+from torch.utils.data import Dataset
+from torchvision.transforms import v2
+from torchvision.io import read_image
+
+
+class BImageTransform (object):
+    """TL;DR
+    Description
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+
+    ----------
+    Reference
+    ----------
+    Date
+    2023-11-19 16時44分35秒
+    ----------
+    """
+    def __init__(self):
+        from torchvision.transforms import v2
+        from pyfzf.pyfzf import FzfPrompt
+        # print(v2.__dict__)
+        fzf = FzfPrompt()
+        results = fzf.prompt(v2.__dict__.keys())
+
+        pass
+
+    #def 
+
+
+class BImageModel():
+    pass
+
+
+class BImageCustomDataset (Dataset):
+    """Custom Dataset
+    Description
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    labels:             dict(index: ["image_name" as str, classname as int])
+                        {
+                            0: ["train_001.png", 4],
+                        }
+    img_dir:            string of path
+                        img_dir = "../data/train"
+    transform           transforms = torchvision.transforms.v2.Compose([
+                            v2.RandomResizedCrop(size=(224, 224), antialias=True),
+                            v2.RandomHorizontalFlip(p=0.5),
+                            v2.ToDtype(torch.float32, scale=True),
+                            v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                        ])
+    target_transform    hogehoge
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+        image_dir = "../data/train"
+
+    ----------
+    Reference
+    transforms          https://pytorch.org/vision/0.15/transforms.html
+    cross validation    https://qiita.com/ground0state/items/ad879a84bf946ef94da8
+    ----------
+    Date
+    2023-11-19 16時44分56秒
+    ----------
+    """
+    def __init__(self, labels, img_dir, transform=None):
+        self.labels = labels
+        self.img_dir = img_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.img_dir, self.labels.iloc[idx, 0])
+        image = read_image(img_path)
+        label = self.labels.iloc[idx, -1]
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
+
+    @staticmethod
+    def cross_validation(labels, image_dir, transform=None):
+        """TL;DR
+        Description
+        ----------
+
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+            train_dataset
+            valid_dataset
+        ----------
+
+        ----------
+        Example
+        labels = df[["image_name", "class"]]
+        split_lst = BImageCustomDataset.cross_validation(labels)
+
+        split_n = 0
+        train_idx, valid_idx = split_lst[split_n]
+        train_df = df.iloc[train_idx]
+        valid_df = df.iloc[valid_idx]
+        train_dataset = BImageCustomDataset(train_df, image_dir)
+        valid_dataset = BImageCustomDataset(valid_df, image_dir)
+
+        train_batch_size = 4
+        valid_batch_size = 4
+        train_dataloader = DataLoader(train_dataset, train_batch_size, shuffle=True)
+        valid_dataloader = DataLoader(valid_dataset, valid_batch_size, shuffle=True)
+
+        ----------
+
+        ----------
+        Reference
+        cross validation        https://qiita.com/ground0state/items/ad879a84bf946ef94da8
+        ----------
+        """
+        n_split = 3
+        kf = KFold(n_split)
+        split_lst = list(kf.split(range(len(labels))))
+        packet_dataset = []
+        for fold, (train_idx, valid_idx) in enumerate(split_lst):
+            train_df = labels.iloc[train_idx]
+            valid_df = labels.iloc[valid_idx]
+            train_dataset = BImageCustomDataset(train_df, image_dir, transform)
+            valid_dataset = BImageCustomDataset(valid_df, image_dir, transform)
+            packet_dataset.append([train_dataset, valid_dataset])
+        return packet_dataset
+
+
+import torch
+from torch.utils.data import Dataset, DataLoader, TensorDataset, random_split, SubsetRandomSampler, ConcatDataset
+import torch.optim as optim
+import torch.nn as nn
+from sklearn.model_selection import KFold
+import numpy as np
+
+
+class BImageTrain(object):
+    """TL;DR
+    Description
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+
+    ----------
+    Reference
+    ----------
+    """
+    def __init__(self, packet_dataset, split_n_lst, model, epochs=10, device="cpu", loss_fn=nn.CrossEntropyLoss):
+        self.packet_dataset = packet_dataset
+        self.split_n_lst = split_n_lst
+        self.model = model
+        self.device = device
+        self.loss_fn = loss_fn()
+        self.epochs = epochs
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.002)
+
+    def loop_cross_validation(self):
+        for fold_n in self.split_n_lst:
+            train_dataset, valid_dataset = self.packet_dataset[fold_n]
+            train_dataloader = DataLoader(train_dataset, 5, shuffle=True)
+            valid_dataloader = DataLoader(valid_dataset, 5, shuffle=True)
+            total_train_loss = []
+            total_valid_loss = []
+            valid_interval = 5
+
+            for epoch in range(1, self.epochs+1):
+                train_loss, train_correct = self.train_one_epoch(train_dataloader)
+                total_train_loss.append(train_loss)
+                if epoch % valid_interval == 0:
+                    valid_loss, valid_correct = self.valid_one_epoch(valid_dataloader)
+                    total_valid_loss.append(valid_loss)
+            BMatplotlib.loss_curve(total_train_loss, total_valid_loss, valid_interval, f"{str(fold_n).zfill(2)}.png")
+
+
+    # @classmethod
+    def train_one_epoch(self, dataloader):
+        """TL;DR
+        Description
+        ----------
+
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
+
+        ----------
+        Example
+        ----------
+
+        ----------
+        Reference
+        Default_base            https://pytorch.org/tutorials/beginner/introyt/trainingyt.html
+        Cross validation        https://medium.com/dataseries/k-fold-cross-validation-with-pytorch-and-sklearn-d094aa00105f
+        ----------
+        """
+        train_loss = 0.
+        train_correct = 0
+        self.model.train()
+
+        # Here, we use enumerate(training_loader) instead of
+        # iter(training_loader) so that we can track the batch
+        # index and do some intra-epoch reporting
+        for images, labels in dataloader:
+            labels = torch.tensor(labels, dtype=torch.long)
+            images, labels = images.to(self.device), labels.to(self.device)
+
+            self.optimizer.zero_grad()           # Zero your gradients for every batch!
+            outputs = self.model(images)
+
+            # Compute the loss and its gradients
+            loss = self.loss_fn(outputs, labels)
+            loss.backward()
+
+            # Adjust learning weights
+            self.optimizer.step()
+
+            # Gather data and report
+            train_loss += loss.item() * images.size(0)      # total of size of minibatch
+
+            scores, predictions = torch.max(outputs.data, 1)
+            train_correct += (predictions == labels).sum().item()
+            # if i % 1000 == 999:
+            #     last_loss = running_loss / 1000 # loss per batch
+            #     print('  batch {} loss: {}'.format(i + 1, last_loss))
+            #     tb_x = epoch_index * len(train_dataloader) + i + 1
+            #     tb_writer.add_scalar('Loss/train', last_loss, tb_x)
+            #     running_loss = 0.
+
+        return train_loss, train_correct
+
+    def valid_one_epoch(self, dataloader):
+        valid_loss, val_correct = 0.0, 0
+        self.model.eval()
+        with torch.no_grad():
+            for images, labels in dataloader:
+                images, labels = images.to(self.device), labels.to(self.device)
+                labels = torch.tensor(labels, dtype=torch.long)
+                output = self.model(images)
+                loss = self.loss_fn(output, labels)
+                valid_loss += loss.item()*images.size(0)
+                scores, predictions = torch.max(output.data, 1)
+                val_correct += (predictions == labels).sum().item()
+        return valid_loss, val_correct
+
 
 ############################################################################################
 # Scraping web
@@ -415,324 +771,46 @@ def scraping ():
 def Bcalc_histgram():
     pass
 
-class MyMatplotlib (object):
-    @classmethod
-    def _sample_axes_plot (self):
-        """
-        Description
-    
-    
-        Parameters
-        ----------
-        ----------
-        Return
-            image (show)
-    
-        Reference
-            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_props.html#sphx-glr-gallery-subplots-axes-and-figures-axes-props-py
-        """
-    
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        t = np.arange(0.0, 2.0, 0.01)
-        s = np.sin(2 * np.pi * t)
-    
-        fig, ax = plt.subplots()
-        ax.plot(t, s)
-    
-        ax.grid(True, linestyle='-.')
-        ax.tick_params(labelcolor='r', labelsize='medium', width=3)
-    
-        plt.show()
-    
-    @classmethod
-    def _sample_zoomin_zoomout (self):
-        """
-        Description
-            zoomin zoomout
-    
-        Parameters
-        ----------
-        ----------
-        Return
-            image (show)
-    
-        Reference
-            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_margins.html#sphx-glr-gallery-subplots-axes-and-figures-axes-margins-py
-        """
-    
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        from matplotlib.patches import Polygon
-    
-    
-        def f(t):
-            return np.exp(-t) * np.cos(2*np.pi*t)
-    
-    
-        t1 = np.arange(0.0, 3.0, 0.01)
-    
-        ax1 = plt.subplot(212)
-        ax1.margins(0.05)           # Default margin is 0.05, value 0 means fit
-        ax1.plot(t1, f(t1))
-    
-        ax2 = plt.subplot(221)
-        ax2.margins(2, 2)           # Values >0.0 zoom out
-        ax2.plot(t1, f(t1))
-        ax2.set_title('Zoomed out')
-    
-        ax3 = plt.subplot(222)
-        ax3.margins(x=0, y=-0.25)   # Values in (-0.5, 0.0) zooms in to center
-        ax3.plot(t1, f(t1))
-        ax3.set_title('Zoomed in')
-    
-        plt.show()
-    
-    @classmethod
-    def _sample_axes_demo (self):
-        """
-        Description
-            
-    
-        Parameters
-        Return
-            image (show)
-        Reference
-            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_demo.html#sphx-glr-gallery-subplots-axes-and-figures-axes-demo-py
-        """
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        np.random.seed(19680801)  # Fixing random state for reproducibility.
-    
-        # create some data to use for the plot
-        dt = 0.001
-        t = np.arange(0.0, 10.0, dt)
-        r = np.exp(-t[:1000] / 0.05)  # impulse response
-        x = np.random.randn(len(t))
-        s = np.convolve(x, r)[:len(x)] * dt  # colored noise
-    
-        fig, main_ax = plt.subplots()
-        main_ax.plot(t, s)
-        main_ax.set_xlim(0, 1)
-        main_ax.set_ylim(1.1 * np.min(s), 2 * np.max(s))
-        main_ax.set_xlabel('time (s)')
-        main_ax.set_ylabel('current (nA)')
-        main_ax.set_title('Gaussian colored noise')
-    
-        # this is an inset axes over the main axes
-        right_inset_ax = fig.add_axes([.65, .6, .2, .2], facecolor='k')
-        right_inset_ax.hist(s, 400, density=True)
-        right_inset_ax.set(title='Probability', xticks=[], yticks=[])
-    
-        # this is another inset axes over the main axes
-        left_inset_ax = fig.add_axes([.2, .6, .2, .2], facecolor='k')
-        left_inset_ax.plot(t[:len(r)], r)
-        left_inset_ax.set(title='Impulse response', xlim=(0, .2), xticks=[], yticks=[])
-    
-        plt.show()
-    
-    @classmethod
-    def _sample_shared_square_axes (self):
-        """
-        Description
-            share y axies
-    
-        Parameters
-    
-        Return
-    
-        Reference
-            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_box_aspect.html#sphx-glr-gallery-subplots-axes-and-figures-axes-box-aspect-py
-        """
-    
-        fig2, (ax, ax2) = plt.subplots(ncols=2, sharey=True)
-    
-        ax.plot([1, 5], [0, 10])
-        ax2.plot([100, 500], [10, 15])
-    
-        ax.set_box_aspect(1)
-        ax2.set_box_aspect(1)
-    
-        plt.show()
-    
-    @classmethod
-    def _sample_box_aspect (self):
-        """
-        Description
-    
-        Parameters
-    
-        Return      empty box
-    
-        Reference
-        """
-    
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        fig1, ax = plt.subplots()
-    
-        ax.set_xlim(300, 400)
-        ax.set_box_aspect(1)
-    
-        plt.show()
-    
-    @classmethod
-    def _sample_align_labels (self):
-        """
-        Description
-    
-        Parameters
-        Reference
-            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/align_labels_demo.html#sphx-glr-gallery-subplots-axes-and-figures-align-labels-demo-py
-        """
-    
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        import matplotlib.gridspec as gridspec
-    
-        fig = plt.figure(tight_layout=True)
-        gs = gridspec.GridSpec(2, 2)
-    
-        ax = fig.add_subplot(gs[0, :])
-        ax.plot(np.arange(0, 1e6, 1000))
-        ax.set_ylabel('YLabel0')
-        ax.set_xlabel('XLabel0')
-    
-        for i in range(2):
-            ax = fig.add_subplot(gs[1, i])
-            ax.plot(np.arange(1., 0., -0.1) * 2000., np.arange(1., 0., -0.1))
-            ax.set_ylabel('YLabel1 %d' % i)
-            ax.set_xlabel('XLabel1 %d' % i)
-            if i == 0:
-                ax.tick_params(axis='x', rotation=55)
-        fig.align_labels()  # same as fig.align_xlabels(); fig.align_ylabels()
-        plt.show()
-    
-    @classmethod
-    def _sample_user_defined (self):
-        """
-        Description
-            user defined on labels (ADVANCED)
-    
-        Parameters
-    
-        Return
-    
-        Reference
-        """
-        
-        import matplotlib.pyplot as plt
-    
-        import matplotlib.transforms as mtransforms
-    
-        fig, ax = plt.subplots()
-        ax.plot(range(10))
-        ax.set_yticks([2, 5, 7], labels=['really, really, really', 'long', 'labels'])
-    
-    
-        def on_draw(event):
-            bboxes = []
-            for label in ax.get_yticklabels():
-                # Bounding box in pixels
-                bbox_px = label.get_window_extent()
-                # Transform to relative figure coordinates. This is the inverse of
-                # transFigure.
-                bbox_fig = bbox_px.transformed(fig.transFigure.inverted())
-                bboxes.append(bbox_fig)
-            # the bbox that bounds all the bboxes, again in relative figure coords
-            bbox = mtransforms.Bbox.union(bboxes)
-            if fig.subplotpars.left < bbox.width:
-                # Move the subplot left edge more to the right
-                fig.subplots_adjust(left=1.1*bbox.width)  # pad a little
-                fig.canvas.draw()
-    
-    
-        fig.canvas.mpl_connect('draw_event', on_draw)
-    
-        plt.show()
-    
-    
-    @classmethod
-    def _sample_plot (self):
-        """
-            Reference: https://matplotlib.org/stable/plot_types/basic/plot.html#sphx-glr-plot-types-basic-plot-py
-        """
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        plt.style.use('_mpl-gallery')
-    
-        # make data
-        x = np.linspace(0, 10, 100)
-        y = 4 + 2 * np.sin(2 * x)
-    
-        # plot
-        fig, ax = plt.subplots()
-    
-        ax.plot(x, y, linewidth=2.0)
-    
-        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-               ylim=(0, 8), yticks=np.arange(1, 8))
-    
-        plt.show()
-    
-    @classmethod
-    def _sample_scatter (self):
-        """
-            Reference: https://matplotlib.org/stable/plot_types/basic/scatter_plot.html#sphx-glr-plot-types-basic-scatter-plot-py
-        """
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        plt.style.use('_mpl-gallery')
-    
-        # make the data
-        np.random.seed(3)
-        x = 4 + np.random.normal(0, 2, 24)
-        y = 4 + np.random.normal(0, 2, len(x))
-        # size and color:
-        sizes = np.random.uniform(15, 80, len(x))
-        colors = np.random.uniform(15, 80, len(x))
-    
-        # plot
-        fig, ax = plt.subplots()
-    
-        ax.scatter(x, y, s=sizes, c=colors, vmin=0, vmax=100)
-    
-        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-               ylim=(0, 8), yticks=np.arange(1, 8))
-    
-        plt.show()
 
-    @classmethod
-    def _sample_bar (self):
-        """
-            Reference: https://matplotlib.org/stable/plot_types/basic/bar.html#sphx-glr-plot-types-basic-bar-py
-        """
-        import matplotlib.pyplot as plt
-        import numpy as np
-    
-        plt.style.use('_mpl-gallery')
-    
-        # make data:
-        x = 0.5 + np.arange(8)
-        y = [4.8, 5.5, 3.5, 4.6, 6.5, 6.6, 2.6, 3.0]
-    
-        # plot
-        fig, ax = plt.subplots()
-    
-        ax.bar(x, y, width=1, edgecolor="white", linewidth=0.7)
-    
-        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-               ylim=(0, 8), yticks=np.arange(1, 8))
-    
-        plt.show()
+class BMatplotlib(object):
+    """TL;DR
+    Description
+    ----------
 
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+
+    ----------
+    Reference
+    https://qiita.com/skotaro/items/08dc0b8c5704c94eafb9
+    https://towardsdatascience.com/clearing-the-confusion-once-and-for-all-fig-ax-plt-subplots-b122bb7783ca
+    ----------
+    """
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def loss_curve(train_loss, valid_loss, valid_interval, fig_name):
+        train_x = list(range(1, len(train_loss)+1))
+        valid_x = list(range(1, len(train_loss)+1, valid_interval))
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        ax.plot(train_x, train_loss)
+        ax.plot(valid_x, valid_loss)
+        # plt.show()
+        fig.savefig(fig_name)
 
 
 ############################################################################################
@@ -747,36 +825,106 @@ class MyMatplotlib (object):
 ############################################################################################
 # toDo scikit-learn
 
-def dataloader ():
-    sample_dataloader = [""]
-    fetch_openm
+class MyScikitLearn (object):
+    def get_dataset(self):
+        """TL;DR
+        Description
+        ----------
 
-def _sample_PCA ():
-    """
-        n_components: number of components
-        Reference: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
-    """
-    import numpy as np
-    from sklearn.decomposition import PCA
-    X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
-    pca = PCA(n_components=2)
-    pca.fit(X)
-    print(f"pca.explained_variance_ratio_: {pca.explained_variance_ratio_}")
-    print(f"pca.singular_values_: {pca.singular_values_}")
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
+        return a tuple (X, y) consisting of a n_samples * n_features numpy array X and an array of length n_samples containing the targets y.
+        ----------
+        Example
+        ----------
 
+        ----------
+        Reference
+        ----------
+        """
+        from sklearn import datasets
+        from pyfzf.pyfzf import FzfPrompt
+        dataset_lst = {
+                "iris":         datasets.load_iris,
+                "diabetes":     datasets.load_diabetes,
+                "digits":       datasets.load_digits,
+                "linnerud":     datasets.load_linnerud,
+                "wine":         datasets.load_wine,
+                "breast_cancer":datasets.load_breast_cancer
+                }
+        fzf = FzfPrompt()
+        result = dataset_lst[fzf.prompt(dataset_lst.keys())[0]]
+        return result(return_X_y=True)
 
-def _sample_kmeans ():
-    """
-        Reference: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
-    """
-    from sklearn.cluster import KMeans
-    X = np.array([[1, 2], [1, 4], [1, 0],
-                  [10, 2], [10, 4], [10, 0]])
-    kmeans = KMeans(n_clusters=2, random_state=0, n_init="auto").fit(X)
-    kmeans.labels_
-    kmeans.predict([[0, 0], [12, 3]])
-    kmeans.cluster_centers_
-    pass
+    def _sample_linear_regression (self):
+        """Linear Regression sample code
+        Description
+        ----------
+
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
+        Show figure
+        ----------
+        Example
+        ----------
+
+        ----------
+        Reference
+        https://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html
+        ----------
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        from sklearn import datasets, linear_model
+        from sklearn.metrics import mean_squared_error, r2_score
+
+        X, y = self.get_dataset()
+
+        # Use only one feature
+        X = X[:, np.newaxis, 2]
+
+        X_train = X[:-20]
+        X_test = X[-20:]
+
+        y_train = y[:-20]
+        y_test = y[-20:]
+
+        regr = linear_model.LinearRegression()
+        regr.fit(X_train, y_train)
+
+        y_pred = regr.predict(X_test)
+
+        # The coefficients
+        print("Coefficients: \n", regr.coef_)
+        # The mean squared error
+        print("Mean squared error: %.2f" % mean_squared_error(y_test, y_pred))
+        # The coefficient of determination: 1 is perfect prediction
+        print("Coefficient of determination: %.2f" % r2_score(y_test, y_pred))
+
+        plt.scatter(X_test, y_test, c="black")
+        plt.plot(X_test, y_pred, c="blue", linewidth=3)
+        plt.xticks(())
+        plt.yticks(())
+
+        plt.show()
+
 
 
 

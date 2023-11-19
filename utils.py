@@ -24,24 +24,8 @@ from torch import multiprocessing as mp
 from hydra import compose, initialize_config_dir
 
 
-def get_logger(file_name, log_dir="logs"):
-    os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, file_name)
-
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(log_path)
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.info("Log file is %s." % log_path)
-    return logger
 
 
-def make_date_log_directory():
-    return datetime.now().strftime(r"%Y_%m_%d_%H_%M")
 
 
 def get_base_parser():

@@ -345,3 +345,710 @@ cv2.destroyAllWindows()
 
 # Reference         https://www.appsloveworld.com/opencv/100/18/quiver-plot-with-optical-flow?expand_article=1
 #                   https://qiita.com/yusuke_s_yusuke/items/03243490b1fd765fe61f
+
+
+# -------------------------------------------
+
+def gabor_filter (img):
+    """
+        Reference: https://github.com/intsynko/gabor_dashboard/tree/main
+    """
+
+    # read img and set gray color
+    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+
+    # dashboard settings
+    fig, (ax, ax_2) = plt.subplots(1, 2)
+    plt.subplots_adjust(left=0.25, bottom=0.45)
+    
+    # create slider spaces
+    axcolor = 'lightgoldenrodyellow'
+    ax_sliders = [plt.axes([0.25, 0.1 + 0.05 * i, 0.65, 0.03], facecolor=axcolor) for i in range(6)]
+    
+    # define parameter sliders
+    ksize = Slider(ax_sliders[0], 'ksize', 1, 40, valinit=21, valstep=1)
+    sigma = Slider(ax_sliders[1], 'sigma', 0.1, 20.0, valinit=8, valstep=0.1)
+    lambd = Slider(ax_sliders[2], 'lambd', 0.1, 20.0, valinit=10, valstep=0.1)
+    gamma = Slider(ax_sliders[3], 'gamma', 0.1, 1, valinit=0.5, valstep=0.05)
+    psi = Slider(ax_sliders[4], 'psi', -10, 10, valinit=0, valstep=1)
+    theta = Slider(ax_sliders[5], 'theta', -5, 5, valinit=0, valstep=0.1)
+    
+    sliders = [ksize, sigma, lambd, gamma, psi, theta]
+    
+    
+    def update (val):
+        # on slider update recalculate gabor kernel
+        g_kernel = cv.getGaborKernel(ksize=(ksize.val, ksize.val),
+                                      sigma=sigma.val,
+                                      theta=np.pi / 4 * theta.val,
+                                      lambd=lambd.val,
+                                      gamma=gamma.val,
+                                      psi=psi.val,
+                                      ktype=cv.CV_32F)
+        # recalculate img result
+        res = cv.filter2D(img, cv.CV_8UC3, g_kernel)
+    
+        # show new img and gabor kernel
+        ax.imshow(res, interpolation="nearest", cmap='gray')
+        ax.set_title('gabor result on img', fontsize=10)
+        ax_2.imshow(g_kernel, interpolation="nearest", cmap='gray')
+        ax_2.set_title('g_kernel', fontsize=10)
+    
+    
+    for i in sliders:
+        i.on_changed(update)
+    
+    update(None)
+    
+    resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+    button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
+    
+    
+    def reset (event):
+        for slider in sliders:
+            slider.reset()
+
+
+    button.on_clicked(reset)
+    plt.show()
+
+
+
+# -------------------------------------------
+
+class MyMatplotlib (object):
+    @classmethod
+    def _sample_axes_plot (self):
+        """
+        Description
+    
+    
+        Parameters
+        ----------
+        ----------
+        Return
+            image (show)
+    
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_props.html#sphx-glr-gallery-subplots-axes-and-figures-axes-props-py
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        t = np.arange(0.0, 2.0, 0.01)
+        s = np.sin(2 * np.pi * t)
+    
+        fig, ax = plt.subplots()
+        ax.plot(t, s)
+    
+        ax.grid(True, linestyle='-.')
+        ax.tick_params(labelcolor='r', labelsize='medium', width=3)
+    
+        plt.show()
+    
+    @classmethod
+    def _sample_zoomin_zoomout (self):
+        """
+        Description
+            zoomin zoomout
+    
+        Parameters
+        ----------
+        ----------
+        Return
+            image (show)
+    
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_margins.html#sphx-glr-gallery-subplots-axes-and-figures-axes-margins-py
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        from matplotlib.patches import Polygon
+    
+    
+        def f(t):
+            return np.exp(-t) * np.cos(2*np.pi*t)
+    
+    
+        t1 = np.arange(0.0, 3.0, 0.01)
+    
+        ax1 = plt.subplot(212)
+        ax1.margins(0.05)           # Default margin is 0.05, value 0 means fit
+        ax1.plot(t1, f(t1))
+    
+        ax2 = plt.subplot(221)
+        ax2.margins(2, 2)           # Values >0.0 zoom out
+        ax2.plot(t1, f(t1))
+        ax2.set_title('Zoomed out')
+    
+        ax3 = plt.subplot(222)
+        ax3.margins(x=0, y=-0.25)   # Values in (-0.5, 0.0) zooms in to center
+        ax3.plot(t1, f(t1))
+        ax3.set_title('Zoomed in')
+    
+        plt.show()
+    
+    @classmethod
+    def _sample_axes_demo (self):
+        """
+        Description
+            
+    
+        Parameters
+        Return
+            image (show)
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_demo.html#sphx-glr-gallery-subplots-axes-and-figures-axes-demo-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        np.random.seed(19680801)  # Fixing random state for reproducibility.
+    
+        # create some data to use for the plot
+        dt = 0.001
+        t = np.arange(0.0, 10.0, dt)
+        r = np.exp(-t[:1000] / 0.05)  # impulse response
+        x = np.random.randn(len(t))
+        s = np.convolve(x, r)[:len(x)] * dt  # colored noise
+    
+        fig, main_ax = plt.subplots()
+        main_ax.plot(t, s)
+        main_ax.set_xlim(0, 1)
+        main_ax.set_ylim(1.1 * np.min(s), 2 * np.max(s))
+        main_ax.set_xlabel('time (s)')
+        main_ax.set_ylabel('current (nA)')
+        main_ax.set_title('Gaussian colored noise')
+    
+        # this is an inset axes over the main axes
+        right_inset_ax = fig.add_axes([.65, .6, .2, .2], facecolor='k')
+        right_inset_ax.hist(s, 400, density=True)
+        right_inset_ax.set(title='Probability', xticks=[], yticks=[])
+    
+        # this is another inset axes over the main axes
+        left_inset_ax = fig.add_axes([.2, .6, .2, .2], facecolor='k')
+        left_inset_ax.plot(t[:len(r)], r)
+        left_inset_ax.set(title='Impulse response', xlim=(0, .2), xticks=[], yticks=[])
+    
+        plt.show()
+    
+    @classmethod
+    def _sample_shared_square_axes (self):
+        """
+        Description
+            share y axies
+    
+        Parameters
+    
+        Return
+    
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_box_aspect.html#sphx-glr-gallery-subplots-axes-and-figures-axes-box-aspect-py
+        """
+    
+        fig2, (ax, ax2) = plt.subplots(ncols=2, sharey=True)
+    
+        ax.plot([1, 5], [0, 10])
+        ax2.plot([100, 500], [10, 15])
+    
+        ax.set_box_aspect(1)
+        ax2.set_box_aspect(1)
+    
+        plt.show()
+    
+    @classmethod
+    def _sample_box_aspect (self):
+        """
+        Description
+    
+        Parameters
+    
+        Return      empty box
+    
+        Reference
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        fig1, ax = plt.subplots()
+    
+        ax.set_xlim(300, 400)
+        ax.set_box_aspect(1)
+    
+        plt.show()
+    
+    @classmethod
+    def _sample_align_labels (self):
+        """
+        Description
+    
+        Parameters
+        Reference
+            https://matplotlib.org/stable/gallery/subplots_axes_and_figures/align_labels_demo.html#sphx-glr-gallery-subplots-axes-and-figures-align-labels-demo-py
+        """
+    
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        import matplotlib.gridspec as gridspec
+    
+        fig = plt.figure(tight_layout=True)
+        gs = gridspec.GridSpec(2, 2)
+    
+        ax = fig.add_subplot(gs[0, :])
+        ax.plot(np.arange(0, 1e6, 1000))
+        ax.set_ylabel('YLabel0')
+        ax.set_xlabel('XLabel0')
+    
+        for i in range(2):
+            ax = fig.add_subplot(gs[1, i])
+            ax.plot(np.arange(1., 0., -0.1) * 2000., np.arange(1., 0., -0.1))
+            ax.set_ylabel('YLabel1 %d' % i)
+            ax.set_xlabel('XLabel1 %d' % i)
+            if i == 0:
+                ax.tick_params(axis='x', rotation=55)
+        fig.align_labels()  # same as fig.align_xlabels(); fig.align_ylabels()
+        plt.show()
+    
+    @classmethod
+    def _sample_user_defined (self):
+        """
+        Description
+            user defined on labels (ADVANCED)
+    
+        Parameters
+    
+        Return
+    
+        Reference
+        """
+        
+        import matplotlib.pyplot as plt
+    
+        import matplotlib.transforms as mtransforms
+    
+        fig, ax = plt.subplots()
+        ax.plot(range(10))
+        ax.set_yticks([2, 5, 7], labels=['really, really, really', 'long', 'labels'])
+    
+    
+        def on_draw(event):
+            bboxes = []
+            for label in ax.get_yticklabels():
+                # Bounding box in pixels
+                bbox_px = label.get_window_extent()
+                # Transform to relative figure coordinates. This is the inverse of
+                # transFigure.
+                bbox_fig = bbox_px.transformed(fig.transFigure.inverted())
+                bboxes.append(bbox_fig)
+            # the bbox that bounds all the bboxes, again in relative figure coords
+            bbox = mtransforms.Bbox.union(bboxes)
+            if fig.subplotpars.left < bbox.width:
+                # Move the subplot left edge more to the right
+                fig.subplots_adjust(left=1.1*bbox.width)  # pad a little
+                fig.canvas.draw()
+    
+    
+        fig.canvas.mpl_connect('draw_event', on_draw)
+    
+        plt.show()
+    
+    
+    @classmethod
+    def _sample_plot (self):
+        """
+            Reference: https://matplotlib.org/stable/plot_types/basic/plot.html#sphx-glr-plot-types-basic-plot-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        plt.style.use('_mpl-gallery')
+    
+        # make data
+        x = np.linspace(0, 10, 100)
+        y = 4 + 2 * np.sin(2 * x)
+    
+        # plot
+        fig, ax = plt.subplots()
+    
+        ax.plot(x, y, linewidth=2.0)
+    
+        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+               ylim=(0, 8), yticks=np.arange(1, 8))
+    
+        plt.show()
+    
+    @classmethod
+    def _sample_scatter (self):
+        """
+            Reference: https://matplotlib.org/stable/plot_types/basic/scatter_plot.html#sphx-glr-plot-types-basic-scatter-plot-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        plt.style.use('_mpl-gallery')
+    
+        # make the data
+        np.random.seed(3)
+        x = 4 + np.random.normal(0, 2, 24)
+        y = 4 + np.random.normal(0, 2, len(x))
+        # size and color:
+        sizes = np.random.uniform(15, 80, len(x))
+        colors = np.random.uniform(15, 80, len(x))
+    
+        # plot
+        fig, ax = plt.subplots()
+    
+        ax.scatter(x, y, s=sizes, c=colors, vmin=0, vmax=100)
+    
+        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+               ylim=(0, 8), yticks=np.arange(1, 8))
+    
+        plt.show()
+
+    @classmethod
+    def _sample_bar (self):
+        """
+            Reference: https://matplotlib.org/stable/plot_types/basic/bar.html#sphx-glr-plot-types-basic-bar-py
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+    
+        plt.style.use('_mpl-gallery')
+    
+        # make data:
+        x = 0.5 + np.arange(8)
+        y = [4.8, 5.5, 3.5, 4.6, 6.5, 6.6, 2.6, 3.0]
+    
+        # plot
+        fig, ax = plt.subplots()
+    
+        ax.bar(x, y, width=1, edgecolor="white", linewidth=0.7)
+    
+        ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
+               ylim=(0, 8), yticks=np.arange(1, 8))
+    
+        plt.show()
+
+# -------------------------------------------
+# scikit-learn sample
+
+def dataloader ():
+    sample_dataloader = [""]
+    fetch_openm
+
+def _sample_PCA ():
+    """
+        n_components: number of components
+        Reference: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
+    """
+    import numpy as np
+    from sklearn.decomposition import PCA
+    X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+    pca = PCA(n_components=2)
+    pca.fit(X)
+    print(f"pca.explained_variance_ratio_: {pca.explained_variance_ratio_}")
+    print(f"pca.singular_values_: {pca.singular_values_}")
+
+
+def _sample_kmeans ():
+    """
+        Reference: https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+    """
+    from sklearn.cluster import KMeans
+    X = np.array([[1, 2], [1, 4], [1, 0],
+                  [10, 2], [10, 4], [10, 0]])
+    kmeans = KMeans(n_clusters=2, random_state=0, n_init="auto").fit(X)
+    kmeans.labels_
+    kmeans.predict([[0, 0], [12, 3]])
+    kmeans.cluster_centers_
+    pass
+
+
+
+class ScikitLearn (object):
+    def __init__(self):
+        pass
+
+    @classmethod
+    def _linear_regression_example (self):
+        """linear regression example
+        Description
+        ----------
+            The example below uses only the first feature of the diabetes dataset,
+            in order to illustrate the data points within the two-dimensional plot.
+            The straight line can be seen in the plot,
+            showing how linear regression attempts to draw a straight line that will best minimize
+            the residual sum of squares between the observed responses in the dataset,
+            and the responses predicted by the linear approximation.
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        
+        ----------
+
+        ----------
+        Example
+        ----------
+
+        ----------
+        Reference
+        https://scikit-learn.org/stable/auto_examples/linear_model/plot_ols.html
+        ----------
+        """
+        # Code source: Jaques Grobler
+        # License: BSD 3 clause
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        from sklearn import datasets, linear_model
+        from sklearn.metrics import mean_squared_error, r2_score
+
+        # Load the diabetes dataset
+        diabetes_X, diabetes_y = datasets.load_diabetes(return_X_y=True)
+
+        # Use only one feature
+        diabetes_X = diabetes_X[:, np.newaxis, 2]
+
+        # Split the data into training/testing sets
+        diabetes_X_train = diabetes_X[:-20]
+        diabetes_X_test = diabetes_X[-20:]
+        
+        # Split the targets into training/testing sets
+        diabetes_y_train = diabetes_y[:-20]
+        diabetes_y_test = diabetes_y[-20:]
+        
+        # Create linear regression object
+        regr = linear_model.LinearRegression()
+        
+        # Train the model using the training sets
+        regr.fit(diabetes_X_train, diabetes_y_train)
+        
+        # Make predictions using the testing set
+        diabetes_y_pred = regr.predict(diabetes_X_test)
+        
+        # The coefficients
+        print("Coefficients: \n", regr.coef_)
+        # The mean squared error
+        print("Mean squared error: %.2f" % mean_squared_error(diabetes_y_test, diabetes_y_pred))
+        # The coefficient of determination: 1 is perfect prediction
+        print("Coefficient of determination: %.2f" % r2_score(diabetes_y_test, diabetes_y_pred))
+        
+        # Plot outputs
+        plt.scatter(diabetes_X_test, diabetes_y_test, color="black")
+        plt.plot(diabetes_X_test, diabetes_y_pred, color="blue", linewidth=3)
+        
+        plt.xticks(())
+        plt.yticks(())
+        
+        plt.show()
+
+
+
+
+# -------------------------------------------
+# how to use newaxis
+# Reference: https://note.nkmk.me/en/python-numpy-newaxis/
+a = np.arange(6).reshape(2, 3)
+print(a)
+# [[0 1 2]
+#  [3 4 5]]
+
+print(a.shape)
+# (2, 3)
+
+print(a[:, :, np.newaxis])
+# [[[0]
+#   [1]
+#   [2]]
+# 
+#  [[3]
+#   [4]
+#   [5]]]
+
+print(a[:, :, np.newaxis].shape)
+# (2, 3, 1)
+
+# -------------------------------------------
+
+
+import torch
+from torch.utils.data import Dataset
+from torchvision import datasets
+from torchvision.transforms import ToTensor
+import matplotlib.pyplot as plt
+
+
+training_data = datasets.FashionMNIST(
+    root="data",
+    train=True,
+    download=True,
+    transform=ToTensor()
+)
+
+test_data = datasets.FashionMNIST(
+    root="data",
+    train=False,
+    download=True,
+    transform=ToTensor()
+)
+
+
+# -------------------------------------------
+
+# Reference     https://pytorch.org/tutorials/beginner/basics/data_tutorial.html?highlight=custom%20dataset
+# FasionMNIST
+
+
+import torch
+from torch.utils.data import Dataset
+from torchvision import datasets
+from torchvision.transforms import ToTensor
+import matplotlib.pyplot as plt
+
+
+training_data = datasets.FashionMNIST(
+    root="data",
+    train=True,
+    download=True,
+    transform=ToTensor()
+)
+
+test_data = datasets.FashionMNIST(
+    root="data",
+    train=False,
+    download=True,
+    transform=ToTensor()
+)
+
+labels_map = {
+    0: "T-Shirt",
+    1: "Trouser",
+    2: "Pullover",
+    3: "Dress",
+    4: "Coat",
+    5: "Sandal",
+    6: "Shirt",
+    7: "Sneaker",
+    8: "Bag",
+    9: "Ankle Boot",
+}
+figure = plt.figure(figsize=(8, 8))
+cols, rows = 3, 3
+for i in range(1, cols * rows + 1):
+    sample_idx = torch.randint(len(training_data), size=(1,)).item()
+    img, label = training_data[sample_idx]
+    figure.add_subplot(rows, cols, i)
+    plt.title(labels_map[label])
+    plt.axis("off")
+    plt.imshow(img.squeeze(), cmap="gray")
+plt.show()
+
+# -------------------------------------------
+# Reference     https://pytorch.org/tutorials/beginner/introyt/trainingyt.html
+
+import torch
+loss_fn = torch.nn.CrossEntropyLoss()
+
+# NB: Loss functions expect data in batches, so we're creating batches of 4
+# Represents the model's confidence in each of the 10 classes for a given input
+dummy_outputs = torch.rand(4, 10)
+# Represents the correct class among the 10 being tested
+dummy_labels = torch.tensor([1, 5, 3, 7])
+
+print(dummy_outputs)
+print(dummy_labels)
+
+loss = loss_fn(dummy_outputs, dummy_labels)
+print('Total loss for this batch: {}'.format(loss.item()))
+
+
+# -------------------------------------------
+# reference: https://pytorch.org/hub/pytorch_vision_resnet/
+# sample for resnet18 model zoo
+
+import torch
+model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+# or any of these variants
+# model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet34', pretrained=True)
+# model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
+# model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet101', pretrained=True)
+# model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet152', pretrained=True)
+model.eval()
+
+
+# Download an example image from the pytorch website
+import urllib
+url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
+try: urllib.URLopener().retrieve(url, filename)
+except: urllib.request.urlretrieve(url, filename)
+
+
+
+# sample execution (requires torchvision)
+from PIL import Image
+from torchvision import transforms
+input_image = Image.open(filename)
+preprocess = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(224),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+input_tensor = preprocess(input_image)
+input_batch = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
+
+# move the input and model to GPU for speed if available
+if torch.cuda.is_available():
+    input_batch = input_batch.to('cuda')
+    model.to('cuda')
+
+with torch.no_grad():
+    output = model(input_batch)
+# Tensor of shape 1000, with confidence scores over ImageNet's 1000 classes
+print(output[0])
+# The output has unnormalized scores. To get probabilities, you can run a softmax on it.
+probabilities = torch.nn.functional.softmax(output[0], dim=0)
+print(probabilities)
+
+
+# Download ImageNet labels
+!wget https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt
+
+# Read the categories
+with open("imagenet_classes.txt", "r") as f:
+    categories = [s.strip() for s in f.readlines()]
+# Show top categories per image
+top5_prob, top5_catid = torch.topk(probabilities, 5)
+for i in range(top5_prob.size(0)):
+    print(categories[top5_catid[i]], top5_prob[i].item())
+
+
+# -------------------------------------------
+# loss function
+# https://blog.paperspace.com/pytorch-loss-functions/
+
+# -------------------------------------------
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+x1 = list(range(10))
+y1 = [10, 2, 3, 1, 20, 10, 22, 4, 4, 1]
+x2 = list(range(0, 10, 2))
+y2 = [1, 20, 22, 4, 4]
+ax.plot(x1, y1)
+ax.plot(x2, y2)
