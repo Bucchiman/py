@@ -462,6 +462,15 @@ def scraping ():
     html = html_bytes.decode("utf-8")
     title_index = html.find("<title>")
 
+
+############################################################################################
+# Ray tune
+
+from ray import tune
+from ray.tune.schedulers import AsyncHyperBandScheduler
+
+
+
 ############################################################################################
 # toDo pytorch
 
@@ -720,6 +729,7 @@ class BImageTrain(object):
         # iter(training_loader) so that we can track the batch
         # index and do some intra-epoch reporting
         for images, labels in dataloader:
+            # print(images.size())
             labels = torch.tensor(labels, dtype=torch.long)
             images, labels = images.to(self.device), labels.to(self.device)
 
