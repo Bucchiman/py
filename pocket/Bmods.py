@@ -37,97 +37,107 @@ from sklearn.model_selection import train_test_split, cross_val_score, Randomize
 import logging
 from logging import getLogger, config
 
-def get_logger(file_name: str, log_dir="../logs"):
-    """TL;DR
-    Description
-    ----------
 
-    ----------
-    Parameters
-    ----------
-    gamma : float, default: 1
-        Desc
-    s : float, default: 0.5 (purple)
-        Desc
-    ----------
-    Return
-    ----------
+class Blogger(object):
+    @staticmethod
+    def get_logger(file_name: str, log_dir: str):
+        """TL;DR
+        Description
+        ----------
 
-    ----------
-    Example
-    ----------
-    get_logger()
-    ----------
-    Reference
-    ----------
-    """
-    os.makedirs(os.path.join(log_dir, make_date_log_directory()), exist_ok=True)
-    log_path = os.path.join(log_dir, file_name)
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
 
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(log_path)
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.info("Log file is %s." % log_path)
-    return logger
+        ----------
+        Example
+        ----------
+        get_logger()
+        ----------
+        Reference
+        ----------
+        """
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, file_name)
 
-def make_date_log_directory():
-    from datetime import datetime
-    return datetime.now().strftime(r"%Y_%m_%d_%H_%M")
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler = logging.FileHandler(log_path)
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        logger.info("Log file is %s." % log_path)
+        return logger
+
+    @staticmethod
+    def make_date_log_directory():
+        from datetime import datetime
+        return datetime.now().strftime(r"%Y_%m_%d_%H_%M")
+
 
 import argparse
-def get_base_parser():
-    base_parser = argparse.ArgumentParser(add_help=False)
-    base_parser.add_argument('--log_dir', type=str, default="../logs", help="log directory specify")
-    base_parser.add_argument('--log_file', type=str, default=make_date_log_directory(), help="log file specify")
-    base_parser.add_argument('--config_dir', type=str, default="../params")
-    base_parser.add_argument('--config_file', type=str, default="config.yaml")
-    base_parser.add_argument('--results_dir', type=str, default="../results", help="results dir specify")
-    base_parser.add_argument('--data_dir', type=str, default="../data", help="data directory specify")
-    # parser.add_argument('--method_name', type="str", default="make_date_log_directory", help="method name here in utils.py")
-
-    # parser.add_argument('arg1')     # 必須の引数
-    # parser.add_argument('-a', 'arg')    # 省略形
-    # parser.add_argument('--flag', action='store_true')  # flag
-    # parser.add_argument('--strlist', required=True, nargs="*", type=str, help='a list of strings') # --strlist hoge fuga geho
-    # parser.add_argument('--method', type=str)
-    # parser.add_argument('--fruit', type=str, default='apple', choices=['apple', 'banana'], required=True)
-    # parser.add_argument('--address', type=lambda x: list(map(int, x.split('.'))), help="IP address") # --address 192.168.31.150 --> [192, 168, 31, 150]
-    # parser.add_argument('--colors', nargs='*', required=True)
-
-    return base_parser
 
 
-def get_ml_args():
-    ml_parser = argparse.ArgumentParser(parents=[get_base_parser()])
-    ml_parser.add_argument('--train_csv', type=str, default="train.csv", help="train.csv specify")
-    ml_parser.add_argument('--test_csv', type=str, default="test.csv", help="test.csv specify")
-    ml_parser.add_argument('--target_col', type=str, required=True, help="target to predict")
-    ml_parser.add_argument('--index_col', type=str, required=True, help="sample id")
-    ml_parser.add_argument('-e', '--eda', action='store_true', help="eda flag")
-    ml_parser.add_argument('-p', '--preprocessing', action='store_true', help="preprocessing flag")
-    ml_parser.add_argument('-f', '--fitting', action='store_true', help="fitting flag")
-    ml_parser.add_argument('--problem_type', type=str, required=True, choices=['Regression', 'Classification'], help="problem type[Regression, Classification]")
-    ml_parser.add_argument('--save_csv_dir', type=str, default="../preprocessing_dir", help="save dir specify")
-    ml_parser.add_argument('--imshow', action='store_true')
-    args = ml_parser.parse_args()
-    return args
+class Bargparse(object):
 
+    @staticmethod
+    def get_base_parser():
+        base_parser = argparse.ArgumentParser(add_help=False)
+        base_parser.add_argument('--log_dir', type=str, default=f"../logs/{Blogger.make_date_log_directory()}", help="log directory specify")
+        base_parser.add_argument('--log_file', type=str, default=make_date_log_directory(), help="log file specify")
+        base_parser.add_argument('--config_dir', type=str, default="../params")
+        base_parser.add_argument('--config_file', type=str, default="config.yaml")
+        base_parser.add_argument('--results_dir', type=str, default="../results", help="results dir specify")
+        base_parser.add_argument('--data_dir', type=str, default="../data", help="data directory specify")
+        # parser.add_argument('--method_name', type="str", default="make_date_log_directory", help="method name here in utils.py")
 
-def get_dl_args():
-    dl_parser = argparse.ArgumentParser(parents=[get_base_parser()])
-    dl_parser.add_argument('--train_img_dir', type=str, required=False)
-    dl_parser.add_argument('--test_img_dir', type=str, required=False)
-    dl_parser.add_argument('--train_label_file', type=str, required=False)
-    dl_parser.add_argument('--batch_size', type=int, default=5)
-    dl_parser.add_argument('--model_name', type=str, default='resnet18')
-    dl_parser.add_argument('--gpus', type=str, default="all", choices=['all', 'cuda:0'])
-    args = dl_parser.parse_args()
-    return args
+        # parser.add_argument('arg1')     # 必須の引数
+        # parser.add_argument('-a', 'arg')    # 省略形
+        # parser.add_argument('--flag', action='store_true')  # flag
+        # parser.add_argument('--strlist', required=True, nargs="*", type=str, help='a list of strings') # --strlist hoge fuga geho
+        # parser.add_argument('--method', type=str)
+        # parser.add_argument('--fruit', type=str, default='apple', choices=['apple', 'banana'], required=True)
+        # parser.add_argument('--address', type=lambda x: list(map(int, x.split('.'))), help="IP address") # --address 192.168.31.150 --> [192, 168, 31, 150]
+        # parser.add_argument('--colors', nargs='*', required=True)
+
+        return base_parser
+
+    @staticmethod
+    def get_ml_args():
+        ml_parser = argparse.ArgumentParser(parents=[Bargparse.get_base_parser()])
+        ml_parser.add_argument('--train_csv', type=str, default="train.csv", help="train.csv specify")
+        ml_parser.add_argument('--test_csv', type=str, default="test.csv", help="test.csv specify")
+        ml_parser.add_argument('--target_col', type=str, required=True, help="target to predict")
+        ml_parser.add_argument('--index_col', type=str, required=True, help="sample id")
+        ml_parser.add_argument('-e', '--eda', action='store_true', help="eda flag")
+        ml_parser.add_argument('-p', '--preprocessing', action='store_true', help="preprocessing flag")
+        ml_parser.add_argument('-f', '--fitting', action='store_true', help="fitting flag")
+        ml_parser.add_argument('--problem_type', type=str, required=True, choices=['Regression', 'Classification'], help="problem type[Regression, Classification]")
+        ml_parser.add_argument('--save_csv_dir', type=str, default="../preprocessing_dir", help="save dir specify")
+        ml_parser.add_argument('--imshow', action='store_true')
+        args = ml_parser.parse_args()
+        return args
+
+    @staticmethod
+    def get_dl_args():
+        dl_parser = argparse.ArgumentParser(parents=[Bargparse.get_base_parser()])
+        dl_parser.add_argument('--train_img_dir', type=str, required=False)
+        dl_parser.add_argument('--test_img_dir', type=str, required=False)
+        dl_parser.add_argument('--train_label_file', type=str, required=False)
+        dl_parser.add_argument('--batch_size', type=int, default=5)
+        dl_parser.add_argument('--model_name', type=str, default='resnet18')
+        dl_parser.add_argument('--gpus', type=str, default="all", choices=['all', 'cuda:0'])
+        args = dl_parser.parse_args()
+        return args
 
 
 # -------------------------------------------

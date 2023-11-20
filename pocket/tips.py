@@ -771,7 +771,7 @@ def _sample_kmeans ():
 
 
 
-class ScikitLearn (object):
+class MyScikitLearn (object):
     def __init__(self):
         pass
 
@@ -825,35 +825,42 @@ class ScikitLearn (object):
         # Split the data into training/testing sets
         diabetes_X_train = diabetes_X[:-20]
         diabetes_X_test = diabetes_X[-20:]
-        
+
         # Split the targets into training/testing sets
         diabetes_y_train = diabetes_y[:-20]
         diabetes_y_test = diabetes_y[-20:]
-        
+
         # Create linear regression object
         regr = linear_model.LinearRegression()
-        
+
         # Train the model using the training sets
         regr.fit(diabetes_X_train, diabetes_y_train)
-        
+
         # Make predictions using the testing set
         diabetes_y_pred = regr.predict(diabetes_X_test)
-        
+
         # The coefficients
         print("Coefficients: \n", regr.coef_)
         # The mean squared error
         print("Mean squared error: %.2f" % mean_squared_error(diabetes_y_test, diabetes_y_pred))
         # The coefficient of determination: 1 is perfect prediction
         print("Coefficient of determination: %.2f" % r2_score(diabetes_y_test, diabetes_y_pred))
-        
+
         # Plot outputs
         plt.scatter(diabetes_X_test, diabetes_y_test, color="black")
         plt.plot(diabetes_X_test, diabetes_y_pred, color="blue", linewidth=3)
-        
+
         plt.xticks(())
         plt.yticks(())
-        
+
         plt.show()
+
+    def ridge_regression (self):
+        from sklearn import linear_model
+        reg = linear_model.Ridge(alpha=.5)
+        reg.fit([[0, 0], [0, 0], [1, 1]], [0, .1, 1])
+        print(reg.coef_)
+        print(reg.intercept_)
 
 
 
@@ -1052,3 +1059,131 @@ x2 = list(range(0, 10, 2))
 y2 = [1, 20, 22, 4, 4]
 ax.plot(x1, y1)
 ax.plot(x2, y2)
+
+# -------------------------------------------
+
+import numpy as np
+import torch
+import torch.optim as optim
+import torch.nn as nn
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import torch.nn.functional as F
+
+from ray import train, tune
+from ray.tune.schedulers import ASHAScheduler
+
+
+class ConvNet(nn.Module):
+    def __init__(self):
+        super(ConvNet, self).__init__()
+        # In this example, we don't change the model architecture
+        # due to simplicity.
+        self.conv1 = nn.Conv2d(1, 3, kernel_size=3)
+        self.fc = nn.Linear(192, 10)
+
+    def forward(self, x):
+        x = F.relu(F.max_pool2d(self.conv1(x), 3))
+        x = x.view(-1, 192)
+        x = self.fc(x)
+        return F.log_softmax(x, dim=1)
+
+
+
+# Change these values if you want the training to run quicker or slower.
+EPOCH_SIZE = 512
+TEST_SIZE = 256
+
+def train_func(model, optimizer, train_loader):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        # We set this just for the example to run quickly.
+        if batch_idx * len(data) > EPOCH_SIZE:
+            return
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = F.nll_loss(output, target)
+        loss.backward()
+        optimizer.step()
+
+
+def test_func(model, data_loader):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for batch_idx, (data, target) in enumerate(data_loader):
+            # We set this just for the example to run quickly.
+            if batch_idx * len(data) > TEST_SIZE:
+                break
+            data, target = data.to(device), target.to(device)
+            outputs = model(data)
+            _, predicted = torch.max(outputs.data, 1)
+            total += target.size(0)
+            correct += (predicted == target).sum().item()
+
+    return correct / total
+
+
+def train_mnist(config):
+    # Data Setup
+    mnist_transforms = transforms.Compose(
+        [transforms.ToTensor(),
+         transforms.Normalize((0.1307, ), (0.3081, ))])
+
+    train_loader = DataLoader(
+        datasets.MNIST(".", train=True, download=True, transform=mnist_transforms),
+        batch_size=64,
+        shuffle=True)
+    test_loader = DataLoader(
+        datasets.MNIST(".", train=False, transform=mnist_transforms),
+        batch_size=64,
+        shuffle=True)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = ConvNet()
+    model.to(device)
+
+    optimizer = optim.SGD(
+        model.parameters(), lr=config["lr"], momentum=config["momentum"])
+    for i in range(10):
+        train_func(model, optimizer, train_loader)
+        acc = test_func(model, test_loader)
+
+        # Send the current training result back to Tune
+        train.report({"mean_accuracy": acc})
+
+        if i % 5 == 0:
+            # This saves the model to the trial directory
+            torch.save(model.state_dict(), "./model.pth")
+
+search_space = {
+    "lr": tune.sample_from(lambda spec: 10 ** (-10 * np.random.rand())),
+    "momentum": tune.uniform(0.1, 0.9),
+}
+
+# Uncomment this to enable distributed execution
+# `ray.init(address="auto")`
+
+# Download the dataset first
+datasets.MNIST("~/data", train=True, download=True)
+
+tuner = tune.Tuner(
+    train_mnist,
+    param_space=search_space,
+)
+results = tuner.fit()
+
+dfs = {result.path: result.metrics_dataframe for result in results}
+[d.mean_accuracy.plot() for d in dfs.values()]
+
+
+
+
+
+
+
