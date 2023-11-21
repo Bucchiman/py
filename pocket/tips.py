@@ -1235,5 +1235,3 @@ results = tuner.fit()
 dfs = {result.path: result.metrics_dataframe for result in results}
 [d.mean_accuracy.plot() for d in dfs.values()]
 
-
-
