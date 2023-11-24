@@ -823,6 +823,141 @@ class BMatplotlib(object):
         pass
 
     @staticmethod
+    def instant():
+        """TL;DR
+        gulliver code!!
+        main_mpl_plot() code!!
+        ----------
+
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
+
+        ----------
+        Example
+        ----------
+
+        ----------
+        Reference
+        ----------
+        """
+        figsize = (16, 9)
+        title = "sin(x) vs cos(x) vs sin(x)*cos(x)"
+        xlim, ylim = None, None
+        xlabel, ylabel = "x-axis", "y-axis"
+        show = False
+        save_fn = "/tmp/a.png"
+        legend = ("upper right", "func type") # (loc, label)
+        opts = dict(title=title, xlabel=xlabel, ylabel=ylabel, xlim=xlim, ylim=ylim, show=show, save_fn=save_fn, legend=legend, figsize=figsize)
+        plt_decorate(**opts) # XXX: 
+        OPEN(save_fn)
+
+
+    def plt_decorate(title=None, xlabel=None, ylabel=None, xlim=None, ylim=None, show=True, save_fn=None, grid="xy", ax=None, fig=None, legend=None, yscale=None, save_pdf=False, close=True, title_fs=None, hist_centered=False, figsize=None) :
+        """TL;DR
+        gulliver code!!
+        gutils_model_params_info_sparsity.py
+        ----------
+
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
+
+        ----------
+        Example
+        ----------
+
+        ----------
+        Reference
+        ----------
+        """
+        #    legend = ("upper right", "weights")
+        ax = ax or plt.gca()
+        if title:
+            ax.set_title(title, fontsize=title_fs)
+        if xlabel:
+            ax.set_xlabel(xlabel)
+        if ylabel:
+            ax.set_ylabel(ylabel)
+        if yscale is not None:
+            plt.yscale(yscale)
+        if xlim:
+            ax.set_xlim(xlim)
+        if ylim:
+            ax.set_ylim(ylim)
+        if 1:
+            # https://stackoverflow.com/questions/6682784/reducing-number-of-plot-ticks
+            # ax.xaxis.get_ticklabels()
+            axis = None
+            if grid not in "xy x y both".split():
+                print(__file__, "grid should be one of 'xy x y both'", f"<{grid}> given")
+            if grid == "xy":
+                axis = "both"
+            elif grid in ("x", "y"):
+                axis = grid
+# XXX: 19/Sep/2023 @ Tue 22:20:01
+   #     axis = "y" if axis and len(ax.xaxis.get_ticklabels()) > 20 else axis
+            plt.grid(axis=axis, **GRID_OPTS)
+        if legend is None:
+            legend = ("upper right", "")
+        if legend:
+# Set legend position when plotting a pandas dataframe with a second y-axis via pandas plotting interface [duplicate]
+# 	https://stackoverflow.com/questions/54090983/set-legend-position-when-plotting-a-pandas-dataframe-with-a-second-y-axis-via-pa
+            try:
+                h1, l1 = ax.get_legend_handles_labels()
+                h2 = l2 = []
+                try:
+                    h2, l2 = ax.right_ax.get_legend_handles_labels()
+                except AttributeError: pass
+                ax.legend(h1+h2, l1+l2, loc=legend[0], title=legend[1])
+            except:
+                ax.legend(loc=legend[0], title=legend[1])
+        fig = fig or plt.gcf();
+        fig.canvas.draw()
+        # XXX: 30/Aug/2023 @ Wed 18:35:14 
+        if figsize:
+            fig = plt.gcf()
+            fw, fh = figsize
+            fig.set_figwidth(fw)
+            fig.set_figheight(fh)
+        plt.tight_layout()
+        if hist_centered:
+            histogram_centered(ax=ax)       # XXX: 24/Jul/2022 @ Sun 11:40:46 
+        if save_fn:
+            fig = fig or plt.gcf()
+            try : # AttributeError: 'Figure' object has no attribute 'set_linewidth'
+                edgewidth, edgecolor = 1, "#04253a"
+                fig.set_linewidth(edgewidth)
+                fig.set_edgecolor(edgecolor)
+            except AttributeError:
+                pass
+            opts = dict(edgecolor=fig.get_edgecolor())
+            plt.savefig(save_fn, **opts)
+            save_fn_pdf = Path(save_fn).with_suffix(".pdf")
+            if save_pdf : plt.savefig(save_fn_pdf, **opts)
+        if show: plt.show()
+        else :
+            if close : plt.close(plt.gcf())
+        return
+
+
+
+
+    @staticmethod
     def loss_curve(train_loss, valid_loss, valid_interval, fig_name):
         train_x = list(range(1, len(train_loss)+1))
         valid_x = list(range(1, len(train_loss)+1, valid_interval))
