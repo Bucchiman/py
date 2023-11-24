@@ -300,7 +300,7 @@ plt.show()
 import cv2
 import numpy as np
 # Capturing the video file 0 for videocam else you can provide the url
-capture = cv2.VideoCapture("Mountain.mp4")
+capture = cv2.VideoCapture("./sample/videos/vtest.avi")
  
 # Reading the first frame
 _, frame1 = capture.read()
