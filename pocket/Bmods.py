@@ -83,6 +83,52 @@ class Blogger(object):
         from datetime import datetime
         return datetime.now().strftime(r"%Y_%m_%d_%H_%M")
 
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
+class Bconfig(object):
+    """TL;DR
+    Config yaml
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+
+    ----------
+    Reference
+    ----------
+    """
+    @staticmethod
+    def get_cnf(params_dir: str, config_file: str):
+        '''
+        @return
+            cnf: OmegaDict
+        '''
+        with initialize_config_dir(version_base=None, config_dir=Path(params_dir).resolve()._str):
+            cnf = compose(config_name=config_file)
+            return cnf
+
+
+@hydra.main(version_base=None, config_path="conf", config_name="config")
+def my_app(cfg : DictConfig) -> None:
+    print(OmegaConf.to_yaml(cfg))
+
+if __name__ == "__main__":
+    my_app()
+
+
 
 import argparse
 

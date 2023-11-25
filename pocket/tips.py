@@ -1235,3 +1235,226 @@ results = tuner.fit()
 dfs = {result.path: result.metrics_dataframe for result in results}
 [d.mean_accuracy.plot() for d in dfs.values()]
 
+
+# -------------------------------------------
+# camera on on mac
+# https://qiita.com/seigot/items/9ae0dc3fed6d43bec828
+import numpy as np
+import cv2
+
+def live_camera():
+    cap = cv2.VideoCapture(0)
+
+    while(True):
+        # Capture frame-by-frame
+        ret, frame = cap.read()
+
+        # Display the resulting frame
+        cv2.imshow('frame',frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # When everything done, release the capture
+    cap.release()
+    cv2.destroyAllWindows()
+
+# -------------------------------------------
+# Reference     https://ataspinar.com/2018/12/21/a-guide-for-using-the-wavelet-transform-in-machine-learning/
+#               https://towardsdatascience.com/wavelet-fourier-analysis-on-the-enso-and-monsoon-data-in-python-31504eeadc2c
+import numpy as np
+import matplotlib.pyplot as plt
+t_n = 1
+N = 100000
+T = t_n / N
+f_s = 1/T
+
+xa = np.linspace(0, t_n, num=N)
+xb = np.linspace(0, t_n/4, num=N/4)
+
+frequencies = [4, 30, 60, 90]
+y1a, y1b = np.sin(2*np.pi*frequencies[0]*xa), np.sin(2*np.pi*frequencies[0]*xb)
+y2a, y2b = np.sin(2*np.pi*frequencies[1]*xa), np.sin(2*np.pi*frequencies[1]*xb)
+y3a, y3b = np.sin(2*np.pi*frequencies[2]*xa), np.sin(2*np.pi*frequencies[2]*xb)
+y4a, y4b = np.sin(2*np.pi*frequencies[3]*xa), np.sin(2*np.pi*frequencies[3]*xb)
+
+composite_signal1 = y1a + y2a + y3a + y4a
+composite_signal2 = np.concatenate([y1b, y2b, y3b, y4b])
+
+f_values1, fft_values1 = get_fft_values(composite_signal1, T, N, f_s)
+f_values2, fft_values2 = get_fft_values(composite_signal2, T, N, f_s)
+
+fig, axarr = plt.subplots(nrows=2, ncols=2, figsize=(12,8))
+axarr[0,0].plot(xa, composite_signal1)
+axarr[1,0].plot(xa, composite_signal2)
+axarr[0,1].plot(f_values1, fft_values1)
+axarr[1,1].plot(f_values2, fft_values2)
+(...)
+plt.tight_layout()
+plt.show()
+
+
+# -------------------------------------------
+# Reference     https://towardsdatascience.com/wavelet-fourier-analysis-on-the-enso-and-monsoon-data-in-python-31504eeadc2c
+
+import pywt
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+plt.style.use('seaborn')
+
+dataset = "monsoon.txt"
+df_nino = pd.read_table(dataset, skiprows=19, header=None)
+
+N = df_nino.shape[0]
+t0 = 1871
+dt = 0.25
+time = np.arange(0, N) * dt + t0
+
+signal = df_nino.values.squeeze() #to get the scalar values
+signal = signal - np.mean(signal)
+
+scales = np.arange(1, 128) #set the wavelet scales
+
+def plot_signal(time, signal, average_over=5, figname=None):
+    fig, ax = plt.subplots(figsize=(15, 3))
+    ax.plot(time, signal, label='signal')
+    ax.set_xlim([time[0], time[-1]])
+    ax.set_ylabel('Signal Amplitude', fontsize=18)
+    # ax.set_title('Signal + Time Average', fontsize=18)
+    ax.set_xlabel('Time', fontsize=18)
+    ax.legend()
+    if not figname:
+        plt.savefig('signal_plot.png', dpi=300, bbox_inches='tight')
+    else:
+        plt.savefig(figname, dpi=300, bbox_inches='tight')
+    plt.close('all')
+
+plot_signal(time, signal) #plot and label the axis
+
+# -------------------------------------------
+# Reference         https://python.atelierkobato.com/axes3d/
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+# Figureを追加
+fig = plt.figure(figsize = (8, 8))
+
+# 3DAxesを追加
+ax = fig.add_subplot(111, projection='3d')
+
+# Axesのタイトルを設定
+ax.set_title("Helix", size = 20)
+
+# 軸ラベルを設定
+ax.set_xlabel("x", size = 14)
+ax.set_ylabel("y", size = 14)
+ax.set_zlabel("z", size = 14)
+
+# 軸目盛を設定
+ax.set_xticks([-1.0, -0.5, 0.0, 0.5, 1.0])
+ax.set_yticks([-1.0, -0.5, 0.0, 0.5, 1.0])
+
+# 円周率の定義
+pi = np.pi
+
+# パラメータ分割数
+n = 256
+
+# パラメータtを作成
+t = np.linspace(-6*pi, 6*pi, n)
+
+# らせんの方程式
+x = np.cos(t)
+y = np.sin(t)
+z = t
+
+# 曲線を描画
+ax.plot(x, y, z, color = "red")
+
+plt.show()
+
+# -------------------------------------------
+# Reference         https://python.atelierkobato.com/axes3d/
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Figureを追加
+fig = plt.figure(figsize = (8, 8))
+
+# 3DAxesを追加
+ax = fig.add_subplot(111, projection='3d')
+
+# Axesのタイトルを設定
+ax.set_title("", size = 20)
+
+# 軸ラベルを設定
+ax.set_xlabel("x", size = 14, color = "r")
+ax.set_ylabel("y", size = 14, color = "r")
+ax.set_zlabel("z", size = 14, color = "r")
+
+# 軸目盛を設定
+ax.set_xticks([-5.0, -2.5, 0.0, 2.5, 5.0])
+ax.set_yticks([-5.0, -2.5, 0.0, 2.5, 5.0])
+
+# -5～5の乱数配列(100要素)
+x = 10 * np.random.rand(100, 1) - 5
+y = 10 * np.random.rand(100, 1) - 5
+z = 10 * np.random.rand(100, 1) - 5
+
+# 曲線を描画
+ax.scatter(x, y, z, s = 40, c = "blue")
+
+plt.show()
+
+
+# -------------------------------------------
+# https://python.atelierkobato.com/axes3d/
+# PYTHON_MATPLOTLIB_3D_PLOT_03
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Figureと3DAxeS
+fig = plt.figure(figsize = (8, 8))
+ax = fig.add_subplot(111, projection="3d")
+
+# 軸ラベルを設定
+ax.set_xlabel("x", size = 16)
+ax.set_ylabel("y", size = 16)
+ax.set_zlabel("z", size = 16)
+
+# 円周率の定義
+pi = np.pi
+
+# (x,y)データを作成
+x = np.linspace(-3*pi, 3*pi, 256)
+y = np.linspace(-3*pi, 3*pi, 256)
+
+# 格子点を作成
+X, Y = np.meshgrid(x, y)
+
+# 高度の計算式
+Z = np.cos(X/pi) * np.sin(Y/pi)
+
+# 曲面を描画
+ax.plot_surface(X, Y, Z, cmap = "summer")
+
+# 底面に等高線を描画
+ax.contour(X, Y, Z, colors = "black", offset = -1)
+
+plt.show()
+
+# -------------------------------------------
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
+@hydra.main(version_base=None, config_path="conf", config_name="config")
+def my_app(cfg : DictConfig) -> None:
+    print(OmegaConf.to_yaml(cfg))
+
+if __name__ == "__main__":
+    my_app()
