@@ -1115,6 +1115,7 @@ class Net(nn.Module):
         return x
 
 # -------------------------------------------
+# Reference: https://docs.ray.io/en/latest/tune/getting-started.html
 
 import numpy as np
 import torch
@@ -1233,8 +1234,10 @@ tuner = tune.Tuner(
 results = tuner.fit()
 
 dfs = {result.path: result.metrics_dataframe for result in results}
-[d.mean_accuracy.plot() for d in dfs.values()]
-
+# [d.mean_accuracy.plot() for d in dfs.values()]
+ax = None
+for d in dfs.values():
+    ax = d.mean_accuracy.plot(ax=ax, legend=False)
 
 # -------------------------------------------
 # camera on on mac
@@ -1458,3 +1461,108 @@ def my_app(cfg : DictConfig) -> None:
 
 if __name__ == "__main__":
     my_app()
+
+# -------------------------------------------
+# Reference     https://pytorch.org/docs/stable/tensorboard.html
+import torch
+import torchvision
+from torch.utils.tensorboard import SummaryWriter
+from torchvision import datasets, transforms
+
+# Writer will output to ./runs/ directory by default
+writer = SummaryWriter()
+
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+trainset = datasets.MNIST('mnist_train', train=True, download=True, transform=transform)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
+model = torchvision.models.resnet50(False)
+# Have ResNet model take in grayscale rather than RGB
+model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+images, labels = next(iter(trainloader))
+
+grid = torchvision.utils.make_grid(images)
+writer.add_image('images', grid, 0)
+writer.add_graph(model, images)
+writer.close()
+
+# -------------------------------------------
+# Reference     https://stackoverflow.com/questions/32655806/python-calling-a-decorator-method-from-another-class
+
+
+class Foo():
+
+    def decorate(self, param):        
+        def wrapper(func):
+            def wrapped(*args, **kwargs):
+                # do something
+                return func(*args, **kwargs)
+            return wrapped
+        return wrapper
+
+
+class Bar():
+
+    foo = Foo()
+    param = "something"
+
+    @foo.decorate(param)
+    def func(self):
+        # do something
+        pass
+
+
+# -------------------------------------------
+# 問題
+# y = x**4 - 2x**3 + 1の最小値を遺伝的アルゴリズムでとく
+
+# Reference>
+#   index argpartition https://stackoverflow.com/questions/6910641/how-do-i-get-indices-of-n-maximum-values-in-a-numpy-array
+#            https://qiita.com/code0327/items/d88ffc21d98663fff73b
+#            https://qiita.com/shuhei_f/items/4ef8c728a52d0290ad71
+#            https://www.includehelp.com/python/how-to-concatenate-2d-arrays-with-1d-array-in-numpy.aspx
+
+def GA(iteration):
+    def fitness_score(x):
+        return np.sum(x**4-2*x**3+1, axis=1)
+
+    import numpy as np
+    from random import randint
+    chromosome = np.random.randn(10, 6) * 3000
+
+    # print(chromosome)
+    # # sample_array = np.array([[4, 1, 10, -2]])
+    # scores = fitness_score(chromosome)
+    # print(scores)
+    # ind = np.argpartition(scores, 2)[:2]
+    # print(ind)
+    # print(chromosome[ind])
+    # print(scores[ind])
+
+    iterations = iteration
+    for i in range(iterations):
+        print(chromosome)
+        scores = fitness_score(chromosome)
+        ind = np.argpartition(scores, 2)[:2]
+
+        # new offspring
+        pairs = chromosome[ind]
+        viseversa = randint(0, 1)
+        if viseversa % 2 == 0:
+            tmp = pairs[0, 0:3]
+            pairs[0, 0:3] = pairs[1, 0:3]
+            pairs[1, 0:3] = tmp
+        else:
+            tmp = pairs[0, 3:6]
+            pairs[0, 3:6] = pairs[1, 3:6]
+            pairs[1, 3:6] = tmp
+
+        new_offspring = pairs[0]
+        indx = randint(0, 5)
+        mutation = randint(-3000, 3000)
+        new_offspring[indx] = mutation
+
+        ind = np.argpartition(scores, 9)[:9]
+        next_chromosome = chromosome[ind]
+        # print(next_chromosome)
+
+        chromosome = np.row_stack([new_offspring, next_chromosome])

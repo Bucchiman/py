@@ -32,6 +32,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
 
+
+
 # -------------------------------------------
 # basic
 import logging
@@ -39,10 +41,34 @@ from logging import getLogger, config
 
 
 class Blogger(object):
+    """logger
+    logger for machine learning, image processing
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+    log_dir = os.path.join("../logs")
+    Blogger.get_logger("hoge.log", "../logs")
+    ----------
+    Reference
+    ----------
+    """
     @staticmethod
     def get_logger(file_name: str, log_dir: str):
         """TL;DR
-        Description
+        logger
         ----------
 
         ----------
@@ -83,6 +109,7 @@ class Blogger(object):
         from datetime import datetime
         return datetime.now().strftime(r"%Y_%m_%d_%H_%M")
 
+# -------------------------------------------
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
@@ -128,6 +155,188 @@ def my_app(cfg : DictConfig) -> None:
 if __name__ == "__main__":
     my_app()
 
+# -------------------------------------------
+# Tune
+from ray import train, tune
+from ray.tune.schedulers import ASHAScheduler
+import torch.nn.functional as F
+from ray import train, tune
+from ray.tune.schedulers import ASHAScheduler
+import torch.nn.functional as F
+import numpy as np
+import torch
+import torch.optim as optim
+import torch.nn as nn
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+
+from ray import train, tune
+from ray.tune.schedulers import ASHAScheduler
+
+
+class Btune(object):
+    def __init__(self):
+        pass
+
+
+    @staticmethod
+    def _sample():
+        """TL;DR
+        Description
+        ----------
+
+        ----------
+        Parameters
+        ----------
+        gamma : float, default: 1
+            Desc
+        s : float, default: 0.5 (purple)
+            Desc
+        ----------
+        Return
+        ----------
+
+        ----------
+        Example
+        ----------
+
+        ----------
+        Reference
+        https://docs.ray.io/en/latest/tune/getting-started.html
+        ----------
+        """
+        from ray import train, tune
+        from ray.tune.schedulers import ASHAScheduler
+        import torch.nn.functional as F
+        import numpy as np
+        import torch
+        import torch.optim as optim
+        import torch.nn as nn
+        from torchvision import datasets, transforms
+        from torch.utils.data import DataLoader
+        import torch.nn.functional as F
+        import matplotlib.pyplot as plt
+
+        from ray import train, tune
+        from ray.train import RunConfig
+        from ray.tune.schedulers import ASHAScheduler
+
+        class ConvNet(nn.Module):
+            def __init__(self):
+                super(ConvNet, self).__init__()
+                # In this example, we don't change the model architecture
+                # due to simplicity.
+                self.conv1 = nn.Conv2d(1, 3, kernel_size=3)
+                self.fc = nn.Linear(192, 10)
+
+            def forward(self, x):
+                x = F.relu(F.max_pool2d(self.conv1(x), 3))
+                x = x.view(-1, 192)
+                x = self.fc(x)
+                return F.log_softmax(x, dim=1)
+
+            # Change these values if you want the training to run quicker or slower.
+        EPOCH_SIZE = 512
+        TEST_SIZE = 256
+
+        def train_func(model, optimizer, train_loader):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model.train()
+            for batch_idx, (data, target) in enumerate(train_loader):
+                # We set this just for the example to run quickly.
+                if batch_idx * len(data) > EPOCH_SIZE:
+                    return
+                data, target = data.to(device), target.to(device)
+                optimizer.zero_grad()
+                output = model(data)
+                loss = F.nll_loss(output, target)
+                loss.backward()
+                optimizer.step()
+
+
+        def test_func(model, data_loader):
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model.eval()
+            correct = 0
+            total = 0
+            with torch.no_grad():
+                for batch_idx, (data, target) in enumerate(data_loader):
+                    # We set this just for the example to run quickly.
+                    if batch_idx * len(data) > TEST_SIZE:
+                        break
+                    data, target = data.to(device), target.to(device)
+                    outputs = model(data)
+                    _, predicted = torch.max(outputs.data, 1)
+                    total += target.size(0)
+                    correct += (predicted == target).sum().item()
+
+            return correct / total
+
+        def train_mnist(config):
+            # Data Setup
+            mnist_transforms = transforms.Compose(
+                [transforms.ToTensor(),
+                 transforms.Normalize((0.1307, ), (0.3081, ))])
+
+            train_loader = DataLoader(
+                datasets.MNIST("~/data", train=True, download=True, transform=mnist_transforms),
+                batch_size=64,
+                shuffle=True)
+            test_loader = DataLoader(
+                datasets.MNIST("~/data", train=False, transform=mnist_transforms),
+                batch_size=64,
+                shuffle=True)
+
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+            model = ConvNet()
+            model.to(device)
+
+            optimizer = optim.SGD(
+                model.parameters(), lr=config["lr"], momentum=config["momentum"])
+            for i in range(10):
+                train_func(model, optimizer, train_loader)
+                acc = test_func(model, test_loader)
+
+                # Send the current training result back to Tune
+                train.report({"mean_accuracy": acc})
+
+                if i % 5 == 0:
+                    # This saves the model to the trial directory
+                    torch.save(model.state_dict(), "./model.pth")
+
+        search_space = {
+                "lr": tune.sample_from(lambda spec: 10 ** (-10 * np.random.rand())),
+                "momentum": tune.uniform(0.1, 0.9),
+        }
+
+        # Uncomment this to enable distributed execution
+        # `ray.init(address="auto")`
+
+        # Download the dataset first
+        datasets.MNIST("~/data", train=True, download=True)
+
+        tuner = tune.Tuner(
+            train_mnist,
+            tune_config=tune.TuneConfig(
+                num_samples=20,
+                scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
+            ),
+            run_config=RunConfig(storage_path="./results", name="experiment_mnist"),
+            param_space=search_space,
+        )
+        results = tuner.fit()
+        # print(results.get_best_result("mean_accuracy", mode="max").path)
+
+        # Obtain a trial dataframe from all run trials of this `tune.run` call.
+        dfs = {result.path: result.metrics_dataframe for result in results}
+        # Plot by epoch
+        ax = None  # This plots everything on the same plot
+        for d in dfs.values():
+            ax = d.mean_accuracy.plot(ax=ax, legend=False)
+            plt.show()
 
 
 import argparse
@@ -723,6 +932,9 @@ class BImageTrain(object):
     Reference
     ----------
     """
+    # btune = BTune()
+
+
     def __init__(self, packet_dataset, split_n_lst, model, epochs=10, device="cpu", loss_fn=nn.CrossEntropyLoss):
         self.packet_dataset = packet_dataset
         self.split_n_lst = split_n_lst
@@ -737,17 +949,22 @@ class BImageTrain(object):
             train_dataset, valid_dataset = self.packet_dataset[fold_n]
             train_dataloader = DataLoader(train_dataset, 5, shuffle=True)
             valid_dataloader = DataLoader(valid_dataset, 5, shuffle=True)
-            total_train_loss = []
-            total_valid_loss = []
             valid_interval = 5
+            self._subset(train_dataloader, valid_dataloader, valid_interval)
 
-            for epoch in range(1, self.epochs+1):
-                train_loss, train_correct = self.train_one_epoch(train_dataloader)
-                total_train_loss.append(train_loss)
-                if epoch % valid_interval == 0:
-                    valid_loss, valid_correct = self.valid_one_epoch(valid_dataloader)
-                    total_valid_loss.append(valid_loss)
-            BMatplotlib.loss_curve(total_train_loss, total_valid_loss, valid_interval, f"{str(fold_n).zfill(2)}.png")
+    def _subset(self, train_dataloader, valid_dataloader, valid_interval):
+        total_train_loss = []
+        total_valid_loss = []
+
+        for epoch in range(1, self.epochs+1):
+            train_loss, train_accuracy = self.train_one_epoch(train_dataloader)
+            total_train_loss.append(train_loss)
+            if epoch % valid_interval == 0:
+                valid_loss, valid_accuracy = self.valid_one_epoch(valid_dataloader)
+                total_valid_loss.append(valid_loss)
+        # BMatplotlib.loss_curve(total_train_loss, total_valid_loss, valid_interval, f"{str(fold_n).zfill(2)}.png")
+
+
 
 
     # @classmethod
@@ -779,6 +996,7 @@ class BImageTrain(object):
         """
         train_loss = 0.
         train_correct = 0
+        total = 0
         self.model.train()
 
         # Here, we use enumerate(training_loader) instead of
@@ -803,6 +1021,7 @@ class BImageTrain(object):
             train_loss += loss.item() * images.size(0)      # total of size of minibatch
 
             scores, predictions = torch.max(outputs.data, 1)
+            total += labels.size(0)
             train_correct += (predictions == labels).sum().item()
             # if i % 1000 == 999:
             #     last_loss = running_loss / 1000 # loss per batch
@@ -811,10 +1030,10 @@ class BImageTrain(object):
             #     tb_writer.add_scalar('Loss/train', last_loss, tb_x)
             #     running_loss = 0.
 
-        return train_loss, train_correct
+        return train_loss, train_correct / total
 
     def valid_one_epoch(self, dataloader):
-        valid_loss, val_correct = 0.0, 0
+        valid_loss, val_correct, total = 0.0, 0, 0
         self.model.eval()
         with torch.no_grad():
             for images, labels in dataloader:
@@ -825,7 +1044,7 @@ class BImageTrain(object):
                 valid_loss += loss.item()*images.size(0)
                 scores, predictions = torch.max(output.data, 1)
                 val_correct += (predictions == labels).sum().item()
-        return valid_loss, val_correct
+        return valid_loss, val_correct / total
 
 
 ############################################################################################
@@ -1289,6 +1508,249 @@ def _sample_main_misc ():
     CPR(src, dst)
     RMRF(src)
     LNS(dst, lns)
+
+
+
+
+# -------------------------------------------
+
+class BMetrics(object):
+    """TL;DR
+    Description
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+
+    ----------
+    Reference
+    ----------
+    """
+
+    def __init__(self):
+        pass
+
+    def rmse(self, y_true: np.array, y_pred: np.array) -> np.array:
+        """
+            RMSE(Root Mean Squared Error): (1/N\sum(y_true_i-y_pred_i)**2)**1/2
+            RMSEを最小化した場合にも止まる解が、誤差が正規分布に従う前提のもとで求まる最尤解と同じ
+            外れ値の影響を受けやすい-> 外れ値を除く必要がある
+
+            Args
+                y_true: 真の値
+                y_pred: 予測値
+            return
+                rmse: 誤差
+        """
+        rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+        return rmse
+
+    def rmsle(self, y_true: np.array, y_pred: np.array) -> np.array:
+        """
+            RMSLE(Root Mean Squared Logarithmic Error): (1/N\sum(log(1+y_true_i)-log(1+y_pred_i))**2)**1/2
+            y -> log(1+y)としてRMSEを求める
+            目的変数が裾の重い分布をもち、変換しないままだと大きな値の影響が強い場合、
+            真の値と予測値の比率に着目したい場合、RMSLEと用いる
+            log(1+y_true_i)-log(1+y_pred_i) = log((1+y_true_i)/(1+y_pred_i)) -> 比率に着目
+            log(1+y)としているのは真の値が0の時の発散を避けるため(log1p関数が使える)
+            Args
+                y_true: 真の値
+                y_pred: 予測値
+            return
+                rmsle: 誤差
+        """
+        pass
+
+    def mae(self, y_true: np.array, y_pred: np.array) -> np.array:
+        """
+            MAE(Mean Absolute Error): 1/N\sum|y_true_i-y_pred_i|
+            RMSEと比較して外れ値の影響を低減できる
+            y_pred_iによる微分についてy_pred_i-y_true_iで不連続だったり、二次微分が0になったり、扱いづらい。
+        """
+        pass
+
+    def r2(self, y_true: np.array, y_pred: np.array) -> np.array:
+        """
+            R^2 (決定係数)
+                R^2 = 1 - (\sum(y_true_i-y_pred_i)**2)/(\sum(y_true_i-y_mean)**2)
+                y_mean = 1/N\sum(y_true_i)
+
+            回帰分析の当てはまりの良さを表す
+            分母: 予測値によらない(定数)
+            分子: 分母 - 二乗誤差(RMSE)
+            指標を最大化 -> 二乗誤差(RMSE)を最小化
+            1に近づくほど精度が高い
+        """
+        pass
+
+    def cm(self, y_true: np.array, y_pred: np.array) -> np.array:
+        """
+            cm(混合行列)
+                                       真の値
+                                 Positive     Negative
+                             +------------+------------+
+                             |            |            |
+                   Positive  |     TP     |     FP     |
+                             |            |            |
+                             |            |            |
+            予測値           +------------+------------+
+                             |            |            |
+                   Negative  |     FN     |     TN     |
+                             |            |            |
+                             |            |            |
+                             +------------+------------+
+            Args
+                y_true: 1(positive)/0(negative) e.g. [1, 0, 0, 1, 0, 1, 1, 1]
+                y_pred: y_trueと同じ
+
+        """
+        # tp = np.sum(y_true == 1 & y_pred == 1)
+        # tn = np.sum(y_true == 0 & y_pred == 0)
+        # fp = np.sum(y_true == 0 & y_pred == 1)
+        # fn = np.sum(y_true == 1 & y_pred == 0)
+
+        # cm = np.array([[tp, fp],
+        #                [fn, tn]])
+
+        cm = confusion_matrix(y_true, y_pred)
+        return cm
+
+    def accuracy_errorrate(self, y_true: np.array, y_pred: np.array):
+        """
+            accuracy = (TP + TN) / (TP + TN + FP + FN)
+            error rate = 1 - accuracy
+
+            不均衡データに対して性能は評価しづらい
+        """
+        accuracy = accuracy_score(y_true, y_pred)
+        return accuracy, 1-accuracy
+
+    def precision_recall(self, y_true: np.array, y_pred: np.array):
+        """
+            precision = TP / (TP + FP)
+            recall = TP / (TP + FN)
+                                       真の値
+                                 Positive     Negative
+                             +------------+------------+
+                             |  +-+----+------------+  |
+                   Positive  |  | |TP  |  |     FP  |  |
+                             |  +-|----|------------+  |
+                             |    |    |  |  precision |
+            予測値           +----|----|--+------------+
+                             |    |    |  |            |
+                   Negative  |    |FN  |  |     TN     |
+                             |    +----+  |            |
+                             |    recall  |            |
+                             +------------+------------+
+            ご検知を少なくを少なくしたい場合、過度にPositiveと予測しないようにprecision重視するべき
+            Positiveの見逃しを避けたい場合、過度にNegativeと予測しないようにrecall重視すべき
+        """
+        pass
+
+    def f1_fbeta(self, y_true: np.array, y_pred: np.array):
+        """
+            f1: precisionとrecallの調和平均
+              f1 = 2 / (1/recall + 1/precision) = 2TP / (2TP + FP + FN)
+
+            fbeta: f1からrecall, precisionのバランスを、recallをどれだけ重視するかを表す係数betaによって調整した指標
+              fbeta = (1+beta**2) / (beta**2/recall + 1/precision)
+        """
+        pass
+
+    def mcc(self, y_true: np.array, y_pred: np.array):
+        """
+            mcc(Matthews Correlation Coefficient)
+                mcc = (TP*TN - FP*FN) / ((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))**1/2
+            不均衡データに対してモデルの性能を適切に評価しやすい指標
+            -1<=mcc<=1, +1: 完全な予測, 0: ランダム予測, -1: 完全に反対予測
+            f1と違い、Positive, Negativeを対称に扱っている
+        """
+        pass
+
+    def logloss(self, y_true: np.array, y_pred: np.array):
+        """
+            cross entropyと呼ばれることもある
+            (2値)分類タスクでの代表的な指標
+            Positiveである確率を予測値とする
+
+            logloss = -1/N\sum(y_i\log(p_i) + (1-y_i)\log(1-p_i))
+            y_i: ラベル(1: Positive, 0: Negative)
+            真の値を予測している確率の対数をとり、符号反転させた値
+
+            L_i = -(y_i\log(p_i)+(1-y_i)\log(1-p_i))
+            მL_i/მp_i = (p_i-y_i)/p_i(1-p_i)
+            p_i=y_iの時、L_iは最小となる
+        """
+        logloss = log_loss(y_true, y_pred)
+        return logloss
+
+    def auc(self, y_true: np.array, y_pred: np.array):
+        """
+            AUC(Area Under the ROC Curve)
+            ROC Curve(Receiver Operating Characteristic Curve)が描く曲線を元に計算
+        """
+        pass
+
+    def multiclass_logloss(self, y_true: np.array, y_pred: np.array):
+        """
+            マルチクラス分類に対するlogloss
+            muticlass logloss = - 1/N \sum\sum y_{i,m} \log(p_{i, m})
+        """
+        pass
+
+# -------------------------------------------
+
+
+# model zoo
+
+# class Bzoo(object):
+class ConvNet(nn.Module):
+    # Reference: https://docs.ray.io/en/latest/tune/getting-started.html
+    def __init__(self):
+        super(ConvNet, self).__init__()
+        # In this example, we don't change the model architecture
+        # due to simplicity.
+        self.conv1 = nn.Conv2d(1, 3, kernel_size=3)
+        self.fc = nn.Linear(192, 10)
+
+    def forward(self, x):
+        x = F.relu(F.max_pool2d(self.conv1(x), 3))
+        x = x.view(-1, 192)
+        x = self.fc(x)
+        return F.log_softmax(x, dim=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# -------------------------------------------
+
+
+
+
 
 
 
