@@ -40,7 +40,7 @@ import logging
 from logging import getLogger, config
 
 
-class Blogger(object):
+class BLogger(object):
     """logger
     logger for machine learning, image processing
     ----------
@@ -113,7 +113,7 @@ class Blogger(object):
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-class Bconfig(object):
+class BConfig(object):
     """TL;DR
     Config yaml
     ----------
@@ -176,10 +176,9 @@ from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
 
 
-class Btune(object):
+class BTune(object):
     def __init__(self):
         pass
-
 
     @staticmethod
     def _sample():
@@ -219,9 +218,7 @@ class Btune(object):
         import torch.nn.functional as F
         import matplotlib.pyplot as plt
 
-        from ray import train, tune
         from ray.train import RunConfig
-        from ray.tune.schedulers import ASHAScheduler
 
         class ConvNet(nn.Module):
             def __init__(self):
@@ -274,7 +271,8 @@ class Btune(object):
 
             return correct / total
 
-        def train_mnist(config):
+        def train_mnist(config, data=None):
+            print(data)
             # Data Setup
             mnist_transforms = transforms.Compose(
                 [transforms.ToTensor(),
@@ -319,12 +317,12 @@ class Btune(object):
         datasets.MNIST("~/data", train=True, download=True)
 
         tuner = tune.Tuner(
-            train_mnist,
+            tune.with_parameters(train_mnist, data="hello"),
             tune_config=tune.TuneConfig(
                 num_samples=20,
                 scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
             ),
-            run_config=RunConfig(storage_path="./results", name="experiment_mnist"),
+            run_config=RunConfig(storage_path="/Users/yk.iwabuchi/results", name="experiment_mnist"),
             param_space=search_space,
         )
         results = tuner.fit()
@@ -338,17 +336,58 @@ class Btune(object):
             ax = d.mean_accuracy.plot(ax=ax, legend=False)
             plt.show()
 
+    @staticmethod
+    def tuning(trainable, train_dataloader, valid_dataloader, valid_interval):
+        from ray import train, tune
+        from ray.tune.schedulers import ASHAScheduler
+        import torch.nn.functional as F
+        import numpy as np
+        import torch
+        import torch.optim as optim
+        import torch.nn as nn
+        from torchvision import datasets, transforms
+        from torch.utils.data import DataLoader
+        import torch.nn.functional as F
+        import matplotlib.pyplot as plt
+
+        from ray.train import RunConfig
+        search_space = {
+                "lr": tune.sample_from(lambda spec: 10 ** (-10 * np.random.rand())),
+                "momentum": tune.uniform(0.1, 0.9),
+        }
+
+        tuner = tune.Tuner(
+            tune.with_parameters(trainable, train_dataloader=train_dataloader, valid_dataloader=valid_dataloader, valid_interval=valid_interval),
+            tune_config=tune.TuneConfig(
+                num_samples=20,
+                scheduler=ASHAScheduler(metric="train_loss", mode="max"),
+            ),
+            run_config=RunConfig(storage_path="/Users/yk.iwabuchi/results", name="experiment_mnist"),
+            param_space=search_space,
+        )
+        results = tuner.fit()
+        # print(results.get_best_result("mean_accuracy", mode="max").path)
+
+        # Obtain a trial dataframe from all run trials of this `tune.run` call.
+        dfs = {result.path: result.metrics_dataframe for result in results}
+        # Plot by epoch
+        ax = None  # This plots everything on the same plot
+        for d in dfs.values():
+            ax = d.train_loss.plot(ax=ax, legend=False)
+            plt.show()
+
+
 
 import argparse
 
 
-class Bargparse(object):
+class BArgparse(object):
 
     @staticmethod
     def get_base_parser():
         base_parser = argparse.ArgumentParser(add_help=False)
-        base_parser.add_argument('--log_dir', type=str, default=f"../logs/{Blogger.make_date_log_directory()}", help="log directory specify")
-        base_parser.add_argument('--log_file', type=str, default=make_date_log_directory(), help="log file specify")
+        base_parser.add_argument('--log_dir', type=str, default=f"../logs/{BLogger.make_date_log_directory()}", help="log directory specify")
+        base_parser.add_argument('--log_file', type=str, default=BLogger.make_date_log_directory(), help="log file specify")
         base_parser.add_argument('--config_dir', type=str, default="../params")
         base_parser.add_argument('--config_file', type=str, default="config.yaml")
         base_parser.add_argument('--results_dir', type=str, default="../results", help="results dir specify")
@@ -368,7 +407,7 @@ class Bargparse(object):
 
     @staticmethod
     def get_ml_args():
-        ml_parser = argparse.ArgumentParser(parents=[Bargparse.get_base_parser()])
+        ml_parser = argparse.ArgumentParser(parents=[BArgparse.get_base_parser()])
         ml_parser.add_argument('--train_csv', type=str, default="train.csv", help="train.csv specify")
         ml_parser.add_argument('--test_csv', type=str, default="test.csv", help="test.csv specify")
         ml_parser.add_argument('--target_col', type=str, required=True, help="target to predict")
@@ -384,7 +423,7 @@ class Bargparse(object):
 
     @staticmethod
     def get_dl_args():
-        dl_parser = argparse.ArgumentParser(parents=[Bargparse.get_base_parser()])
+        dl_parser = argparse.ArgumentParser(parents=[BArgparse.get_base_parser()])
         dl_parser.add_argument('--train_img_dir', type=str, required=False)
         dl_parser.add_argument('--test_img_dir', type=str, required=False)
         dl_parser.add_argument('--train_label_file', type=str, required=False)
@@ -741,7 +780,8 @@ from ray.tune.schedulers import AsyncHyperBandScheduler
 
 
 from torch.utils.data import Dataset
-from torchvision.transforms import v2
+# from torchvision.transforms import v2
+from torchvision import transforms
 from torchvision.io import read_image
 
 
@@ -837,7 +877,9 @@ class BImageCustomDataset (Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.labels.iloc[idx, 0])
+        print(img_path)
         image = read_image(img_path)
+        print(img_path)
         label = self.labels.iloc[idx, -1]
         if self.transform:
             image = self.transform(image)
@@ -894,6 +936,7 @@ class BImageCustomDataset (Dataset):
         for fold, (train_idx, valid_idx) in enumerate(split_lst):
             train_df = labels.iloc[train_idx]
             valid_df = labels.iloc[valid_idx]
+            # print(f"fold: {fold}_______________________")
             train_dataset = BImageCustomDataset(train_df, image_dir, transform)
             valid_dataset = BImageCustomDataset(valid_df, image_dir, transform)
             packet_dataset.append([train_dataset, valid_dataset])
@@ -932,7 +975,6 @@ class BImageTrain(object):
     Reference
     ----------
     """
-    # btune = BTune()
 
 
     def __init__(self, packet_dataset, split_n_lst, model, epochs=10, device="cpu", loss_fn=nn.CrossEntropyLoss):
@@ -942,7 +984,6 @@ class BImageTrain(object):
         self.device = device
         self.loss_fn = loss_fn()
         self.epochs = epochs
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.002)
 
     def loop_cross_validation(self):
         for fold_n in self.split_n_lst:
@@ -950,25 +991,29 @@ class BImageTrain(object):
             train_dataloader = DataLoader(train_dataset, 5, shuffle=True)
             valid_dataloader = DataLoader(valid_dataset, 5, shuffle=True)
             valid_interval = 5
-            self._subset(train_dataloader, valid_dataloader, valid_interval)
+            BTune.tuning(self._subset, train_dataloader, valid_dataloader, valid_interval)
+            # self._subset(train_dataloader, valid_dataloader, valid_interval)
 
-    def _subset(self, train_dataloader, valid_dataloader, valid_interval):
+    def _subset(self, config, train_dataloader, valid_dataloader, valid_interval):
         total_train_loss = []
         total_valid_loss = []
+        model = self.model
+        # optimizer = optim.Adam(self.model.parameters(), lr=config["lr"])
+        optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"])
 
         for epoch in range(1, self.epochs+1):
-            train_loss, train_accuracy = self.train_one_epoch(train_dataloader)
+            train_loss, train_accuracy = self.train_one_epoch(model, optimizer, train_dataloader)
             total_train_loss.append(train_loss)
+            # train.report({"train_mean_accuracy": train_accuracy})
+            train.report({"train_loss": train_loss})
             if epoch % valid_interval == 0:
-                valid_loss, valid_accuracy = self.valid_one_epoch(valid_dataloader)
+                valid_loss, valid_accuracy = self.valid_one_epoch(model, optimizer, valid_dataloader)
                 total_valid_loss.append(valid_loss)
         # BMatplotlib.loss_curve(total_train_loss, total_valid_loss, valid_interval, f"{str(fold_n).zfill(2)}.png")
 
 
-
-
     # @classmethod
-    def train_one_epoch(self, dataloader):
+    def train_one_epoch(self, model, optimizer, dataloader):
         """TL;DR
         Description
         ----------
@@ -997,7 +1042,7 @@ class BImageTrain(object):
         train_loss = 0.
         train_correct = 0
         total = 0
-        self.model.train()
+        model.train()
 
         # Here, we use enumerate(training_loader) instead of
         # iter(training_loader) so that we can track the batch
@@ -1007,15 +1052,15 @@ class BImageTrain(object):
             labels = torch.tensor(labels, dtype=torch.long)
             images, labels = images.to(self.device), labels.to(self.device)
 
-            self.optimizer.zero_grad()           # Zero your gradients for every batch!
-            outputs = self.model(images)
+            optimizer.zero_grad()           # Zero your gradients for every batch!
+            outputs = model(images)
 
             # Compute the loss and its gradients
             loss = self.loss_fn(outputs, labels)
             loss.backward()
 
             # Adjust learning weights
-            self.optimizer.step()
+            optimizer.step()
 
             # Gather data and report
             train_loss += loss.item() * images.size(0)      # total of size of minibatch
@@ -1032,9 +1077,9 @@ class BImageTrain(object):
 
         return train_loss, train_correct / total
 
-    def valid_one_epoch(self, dataloader):
+    def valid_one_epoch(self, model, optimizer, dataloader):
         valid_loss, val_correct, total = 0.0, 0, 0
-        self.model.eval()
+        model.eval()
         with torch.no_grad():
             for images, labels in dataloader:
                 images, labels = images.to(self.device), labels.to(self.device)
@@ -1042,6 +1087,7 @@ class BImageTrain(object):
                 output = self.model(images)
                 loss = self.loss_fn(output, labels)
                 valid_loss += loss.item()*images.size(0)
+                total += labels.size(0)
                 scores, predictions = torch.max(output.data, 1)
                 val_correct += (predictions == labels).sum().item()
         return valid_loss, val_correct / total
