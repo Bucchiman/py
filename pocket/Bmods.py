@@ -40,6 +40,20 @@ import logging
 from logging import getLogger, config
 
 
+class BDeploy(object):
+    def __init__(self):
+        pass
+
+    def torch2onnx(self):
+        pass
+
+    def torch2trt(self):
+        pass
+
+    def torch2tensor(self):
+        pass
+
+
 class BLogger(object):
     """logger
     logger for machine learning, image processing

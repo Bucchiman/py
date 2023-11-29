@@ -1566,3 +1566,9 @@ def GA(iteration):
         # print(next_chromosome)
 
         chromosome = np.row_stack([new_offspring, next_chromosome])
+
+# -------------------------------------------
+
+fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+ax.plot(list(range(10)), list(range(10)))
+fig.show()
