@@ -1572,3 +1572,155 @@ def GA(iteration):
 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
 ax.plot(list(range(10)), list(range(10)))
 fig.show()
+
+
+# -------------------------------------------
+# Reference> https://medium.com/analytics-vidhya/how-to-filter-noise-with-a-low-pass-filter-python-885223e5e9b7
+#            https://medium.com/@nehajirafe/using-fft-to-analyse-and-cleanse-time-series-data-d0c793bb82e3
+
+# Step1 Define the filter requirements
+#   - sample period 5 sec(t)
+#   - sample freq   30 samples/sec, i.e. 30 Hz(fs)
+#   - Total Samples (fs x t) 150
+#   - Signal Freq   6 signal / 5 sec = 1.2 Hz
+#   - nyquist Frequency  0.5 * fs
+#   - order = polynomial order of the signal
+
+import numpy as np
+import plotly.graph_objects as go
+from scipy.signal import butter,filtfilt
+# Filter requirements.
+T = 5.0         # Sample Period
+fs = 30.0       # sample rate, Hz
+cutoff = 2      # desired cutoff frequency of the filter, Hz ,      slightly higher than actual 1.2 Hz
+nyq = 0.5 * fs  # Nyquist Frequency
+order = 2       # sin wave can be approx represented as quadratic
+n = int(T * fs) # total number of samples
+
+
+# Step2 Create some sample data with noise
+# sin wave
+sig = np.sin(1.2*2*np.pi*t)
+# Lets add some noise
+noise = 1.5*np.cos(9*2*np.pi*t) + 0.5*np.sin(12.0*2*np.pi*t)
+data = sig + noise
+
+# Step3 Filter implementation using scipy
+
+
+def butter_lowpass_filter(data, cutoff, fs, order):
+    normal_cutoff = cutoff / nyq
+    # Get the filter coefficients 
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    y = filtfilt(b, a, data)
+    return y
+
+# Step4 Filter and plot the data
+
+# Filter the data, and plot both the original and filtered signals.
+y = butter_lowpass_filter(data, cutoff, fs, order)
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+            y = data,
+            line =  dict(shape =  'spline' ),
+            name = 'signal with noise'
+            ))
+fig.add_trace(go.Scatter(
+            y = y,
+            line =  dict(shape =  'spline' ),
+            name = 'filtered signal'
+            ))
+fig.show()
+
+
+# -------------------------------------------
+# Reference> https://towardsdatascience.com/image-processing-with-python-application-of-fourier-transformation-5a8584dc175b
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2 as cv
+from skimage.io import imread, imshow
+from skimage.color import rgb2hsv, rgb2gray, rgb2yuv
+from skimage import color, exposure, transform
+from skimage.exposure import equalize_hist
+
+dark_image = cv.cvtColor(cv.imread('/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/1_1.png'), cv.COLOR_BGR2RGB)
+dark_image_grey = cv.imread('/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/1_1.png', 0)
+
+# dark_image_grey = rgb2gray(dark_image)
+plt.figure(num=None, figsize=(8, 6), dpi=80)
+plt.imshow(dark_image_grey, cmap='gray');
+# plg.show();
+dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(dark_image_grey))
+plt.figure(num=None, figsize=(8, 6), dpi=80)
+plt.imshow(np.log(abs(dark_image_grey_fourier)), cmap='gray');
+# plt.show()
+
+
+def fourier_masker_ver(image, i):
+    f_size = 15
+    dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(rgb2gray(image)))
+    dark_image_grey_fourier[:225, 235:240] = i
+    dark_image_grey_fourier[-225:,235:240] = i
+    fig, ax = plt.subplots(1,3,figsize=(15,15))
+    ax[0].imshow(np.log(abs(dark_image_grey_fourier)), cmap='gray')
+    ax[0].set_title('Masked Fourier', fontsize = f_size)
+    ax[1].imshow(rgb2gray(image), cmap = 'gray')
+    ax[1].set_title('Greyscale Image', fontsize = f_size);
+    ax[2].imshow(abs(np.fft.ifft2(dark_image_grey_fourier)), 
+                     cmap='gray')
+    ax[2].set_title('Transformed Greyscale Image', 
+                     fontsize = f_size);
+    fig.show()
+    
+fourier_masker_ver(dark_image, 1)
+
+def fourier_masker_hor(image, i):
+    f_size = 15
+    dark_image_grey_fourier =
+    np.fft.fftshift(np.fft.fft2(rgb2gray(image)))
+    dark_image_grey_fourier[235:240, :230] = i
+    dark_image_grey_fourier[235:240,-230:] = i
+    fig, ax = plt.subplots(1,3,figsize=(15,15))
+    ax[0].imshow(np.log(abs(dark_image_grey_fourier)), cmap='gray')
+    ax[0].set_title('Masked Fourier', fontsize = f_size)
+    ax[1].imshow(rgb2gray(image), cmap = 'gray')
+    ax[1].set_title('Greyscale Image', fontsize = f_size);
+    ax[2].imshow(abs(np.fft.ifft2(dark_image_grey_fourier)), 
+                     cmap='gray')
+    ax[2].set_title('Transformed Greyscale Image', 
+                     fontsize = f_size);
+fourier_masker_hor(dark_image, 1)
+
+def fourier_iterator(image, value_list):
+    for i in value_list:
+        fourier_masker_ver(image, i)
+ 
+fourier_iterator(dark_image, [0.001, 1, 100])
+
+
+def fourier_transform_rgb(image):
+    f_size = 25
+    transformed_channels = []
+    for i in range(3):
+        rgb_fft = np.fft.fftshift(np.fft.fft2((image[:, :, i])))
+        rgb_fft[:225, 235:237] = 1
+        rgb_fft[-225:,235:237] = 1
+        transformed_channels.append(abs(np.fft.ifft2(rgb_fft)))
+    
+    final_image = np.dstack([transformed_channels[0].astype(int), 
+                             transformed_channels[1].astype(int), 
+                             transformed_channels[2].astype(int)])
+    
+    fig, ax = plt.subplots(1, 2, figsize=(17,12))
+    ax[0].imshow(image)
+    ax[0].set_title('Original Image', fontsize = f_size)
+    ax[0].set_axis_off()
+    
+    ax[1].imshow(final_image)
+    ax[1].set_title('Transformed Image', fontsize = f_size)
+    ax[1].set_axis_off()
+    
+    fig.tight_layout()
+
+
+
