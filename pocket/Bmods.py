@@ -127,6 +127,7 @@ class BLogger(object):
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
+
 class BConfig(object):
     """TL;DR
     Config yaml
@@ -638,9 +639,74 @@ def _run_bfzfprompt(lst):
 
 # _run_bfzfprompt(['hoge', 'kie', 'becori'])
 
-def Bfzfprompt4path (path: str):
-    from pyfzf.pyfzf import FzfPrompt
-    #fzf
+# def Bfzfprompt4path (path: str):
+#     from pyfzf.pyfzf import FzfPrompt
+#     #fzf
+
+
+def VideoWrapper(func):
+    """fzf prompt
+        frame processing
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    func : processing of frame
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+    @VideoWrapper
+    def gaussianprocessing(frame):
+        kernel = np.ones((5, 5), np.float32)/25
+        dst = cv.filter2D(frame, -1, kernel)
+    ----------
+    Reference
+    ----------
+    """
+
+    def wrapper(*args, **kwargs):
+        import cv2 as cv
+        cap = cv.VideoCapture(args[0])
+        if (cap.isOpened() is False):
+            print("Error openening video stream or file")
+        while (cap.isOpened()):
+            ret, frame = cap.read()
+            if ret is True:
+                # Display the resulting frame
+                # cv.imshow('Frame', frame)
+                processing_imgs = func(frame)
+                cv.imshow('processing image', processing_imgs[0])
+
+                # Press Q on keyboard to  exit
+                if cv.waitKey(1) & 0xFF == ord('q'):
+                    break
+            # Break the loop
+            else:
+                break
+
+        # When everything done, release the video capture object
+        cap.release()
+
+        # Closes all the frames
+        cv.destroyAllWindows()
+
+        # func(results, **kwargs)
+    return wrapper
+
+
+@VideoWrapper
+def sampleblur(frame):
+    kernel = np.ones((5, 5), np.float32) / 25
+    dst = cv.filter2D(frame, -1, kernel)
+    return [dst]
+import cv2 as cv
+sampleblur("Mountain.mp4")
+
 
 def Bshow_video(path: str):
     """
@@ -650,31 +716,34 @@ def Bshow_video(path: str):
         Description:
             This is VideoShow
     """
+    import cv2 as cv
     cap = cv.VideoCapture(path)
     # Check if camera opened successfully
-    if (cap.isOpened()== False): 
+    if (cap.isOpened() is False):
         print("Error opening video stream or file")
- 
+
     # Read until video is completed
-    while(cap.isOpened()):
+    while (cap.isOpened()):
         # Capture frame-by-frame
         ret, frame = cap.read()
-        if ret == True:
+        if ret is True:
             # Display the resulting frame
             cv.imshow('Frame', frame)
- 
+
             # Press Q on keyboard to  exit
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
         # Break the loop
-        else: 
+        else:
             break
- 
+
     # When everything done, release the video capture object
     cap.release()
- 
+
     # Closes all the frames
     cv.destroyAllWindows()
+
+
 
 #
 # Reference: gulliver, gutils.zip, gutils_time.py
