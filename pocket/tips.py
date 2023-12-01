@@ -10,6 +10,9 @@
 #
 
 
+
+from Bmods import BVideoWrapper
+
 # -------------------------------------------
 
 def make_monotone_color_image():
@@ -1671,13 +1674,12 @@ def fourier_masker_ver(image, i):
     ax[2].set_title('Transformed Greyscale Image', 
                      fontsize = f_size);
     fig.show()
-    
+
 fourier_masker_ver(dark_image, 1)
 
 def fourier_masker_hor(image, i):
     f_size = 15
-    dark_image_grey_fourier =
-    np.fft.fftshift(np.fft.fft2(rgb2gray(image)))
+    dark_image_grey_fourier = np.fft.fftshift(np.fft.fft2(rgb2gray(image)))
     dark_image_grey_fourier[235:240, :230] = i
     dark_image_grey_fourier[235:240,-230:] = i
     fig, ax = plt.subplots(1,3,figsize=(15,15))
@@ -1723,4 +1725,142 @@ def fourier_transform_rgb(image):
     fig.tight_layout()
 
 
+# -------------------------------------------
+# Reference   https://docs.opencv.org/4.x/de/dbc/tutorial_py_fourier_transform.html
 
+from Bmods import BVideoWrapper
+@BVideoWrapper
+def fourier_transform(frame):
+    import numpy as np
+    import cv2 as cv
+    f = np.fft.fft2(frame)
+    fshift = np.fft.fftshift(f)
+    magnitude_spectrum = (20*np.log(np.abs(fshift))).astype(np.uint8)
+    magnitude_spectrum_gray = cv.cvtColor(magnitude_spectrum, cv.COLOR_BGR2GRAY)
+    magnitude_spectrum_gray = cv.cvtColor(magnitude_spectrum_gray, cv.COLOR_GRAY2BGR)
+
+    return [magnitude_spectrum]
+
+fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/1_1.mp4")
+# fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/3_1.mp4")
+# fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/3_3.mp4")
+# fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/3_6.mp4")
+
+
+@BVideoWrapper
+def fourier_transform_processing(frame):
+    import numpy as np
+    import cv2 as cv
+    f = np.fft.fft2(frame)
+    fshift = np.fft.fftshift(f)
+    magnitude_spectrum = (20*np.log(np.abs(fshift))).astype(np.uint8)
+    magnitude_spectrum_gray = cv.cvtColor(magnitude_spectrum, cv.COLOR_BGR2GRAY)
+    magnitude_spectrum = np.where(magnitude_spectrum_gray>20, np.median(magnitude_spectrum_gray), ary1)
+    magnitude_spectrum_gray = cv.cvtColor(magnitude_spectrum_gray, cv.COLOR_GRAY2BGR)
+
+    unshifted_f_uv = np.fft.fftshift(shifted_f_uv)
+    # 2 次元逆高速フーリエ変換で空間領域の情報に戻す
+    i_f_xy = np.fft.ifft2(unshifted_f_uv).real
+
+    return [magnitude_spectrum_gray]
+
+fourier_transform_processing("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/1_1.mp4")
+
+
+# -------------------------------------------
+# Reference https://docs.opencv.org/4.8.0/db/d5b/tutorial_py_mouse_handling.html
+import cv2 as cv
+events = [i for i in dir(cv) if 'EVENT' in i]
+print( events )
+
+import numpy as np
+import cv2 as cv
+# mouse callback function
+def draw_circle(event,x,y,flags,param):
+    if event == cv.EVENT_LBUTTONDBLCLK:
+        cv.circle(img,(x,y),100,(255,0,0),-1)
+# Create a black image, a window and bind the function to window
+img = np.zeros((512,512,3), np.uint8)
+cv.namedWindow('image')
+cv.setMouseCallback('image',draw_circle)
+while(1):
+    cv.imshow('image',img)
+    if cv.waitKey(20) & 0xFF == 27:
+        break
+cv.destroyAllWindows()
+
+
+import numpy as np
+import cv2 as cv
+drawing = False # true if mouse is pressed
+mode = True # if True, draw rectangle. Press 'm' to toggle to curve
+ix,iy = -1,-1
+# mouse callback function
+def draw_circle(event,x,y,flags,param):
+    global ix,iy,drawing,mode
+    if event == cv.EVENT_LBUTTONDOWN:
+        drawing = True
+        ix,iy = x,y
+    elif event == cv.EVENT_MOUSEMOVE:
+        if drawing == True:
+            if mode == True:
+                cv.rectangle(img,(ix,iy),(x,y),(0,255,0),-1)
+            else:
+                cv.circle(img,(x,y),5,(0,0,255),-1)
+    elif event == cv.EVENT_LBUTTONUP:
+        drawing = False
+        if mode == True:
+            cv.rectangle(img,(ix,iy),(x,y),(0,255,0),-1)
+        else:
+            cv.circle(img,(x,y),5,(0,0,255),-1)
+
+
+img = np.zeros((512,512,3), np.uint8)
+cv.namedWindow('image')
+cv.setMouseCallback('image',draw_circle)
+while(1):
+    cv.imshow('image',img)
+    k = cv.waitKey(1) & 0xFF
+    if k == ord('m'):
+        mode = not mode
+    elif k == 27:
+        break
+cv.destroyAllWindows()
+
+
+# -------------------------------------------
+# import required libraries
+import cv2
+import numpy as np
+drawing = False # true if mouse is pressed
+ix, iy = -1, -1
+
+# define mouse callback function to draw circle
+def draw_curve(event, x, y, flags, param):
+    global ix, iy, drawing, img
+    if event == cv2.EVENT_LBUTTONUP:
+        drawing = False
+    elif event == cv2.EVENT_LBUTTONDOWN:
+        drawing = True
+    elif event == cv2.EVENT_MOUSEMOVE:
+        if drawing == True:
+            cv2.circle(img, (x, y), 1, (0, 0, 255), -1)
+        elif event == cv2.EVENT_LBUTTONUP:
+            drawing = False
+            cv2.circle(img, (x, y), 1, (0, 0, 255), -1)
+
+# Create a black image
+img = np.zeros((512,700,3), np.uint8)
+
+# Create a window and bind the function to window
+cv2.namedWindow("Curve Window")
+
+# Connect the mouse button to our callback function
+cv2.setMouseCallback("Curve Window", draw_curve)
+
+# display the window
+while True:
+    cv2.imshow("Curve Window", img)
+    if cv2.waitKey(10) == 27:
+        break
+cv2.destroyAllWindows()

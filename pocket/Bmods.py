@@ -32,6 +32,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
 
+# -------------------------------------------
+
+
 
 
 # -------------------------------------------
@@ -644,7 +647,7 @@ def _run_bfzfprompt(lst):
 #     #fzf
 
 
-def VideoWrapper(func):
+def BVideoWrapper(func):
     """fzf prompt
         frame processing
     ----------
@@ -678,9 +681,12 @@ def VideoWrapper(func):
             ret, frame = cap.read()
             if ret is True:
                 # Display the resulting frame
-                # cv.imshow('Frame', frame)
                 processing_imgs = func(frame)
-                cv.imshow('processing image', processing_imgs[0])
+                displayed_imgs = np.hstack((frame, *processing_imgs))
+                cv.namedWindow("processing image", cv.WND_PROP_FULLSCREEN)
+                cv.setWindowProperty("processing image", cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
+
+                cv.imshow('processing image', displayed_imgs)
 
                 # Press Q on keyboard to  exit
                 if cv.waitKey(1) & 0xFF == ord('q'):
@@ -699,7 +705,7 @@ def VideoWrapper(func):
     return wrapper
 
 
-@VideoWrapper
+@BVideoWrapper
 def sampleblur(frame):
     kernel = np.ones((5, 5), np.float32) / 25
     dst = cv.filter2D(frame, -1, kernel)
