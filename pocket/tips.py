@@ -1741,7 +1741,7 @@ def fourier_transform(frame):
 
     return [magnitude_spectrum]
 
-fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/1_1.mp4")
+fourier_transform("/Users/Bucchiman/mywork/projects/rain_segmentation/data/1_1.mp4")
 # fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/3_1.mp4")
 # fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/3_3.mp4")
 # fourier_transform("/Users/yk.iwabuchi/mywork/projects/rain_segmentation/data/3_6.mp4")
