@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2023-02-18 14:28:37 +0900
+# LastModified: 2023-12-14 17:20:03
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -872,6 +872,11 @@ from torch.utils.data import Dataset
 # from torchvision.transforms import v2
 from torchvision import transforms
 from torchvision.io import read_image
+
+
+def load_models (model_name: str):
+    import torch
+    model_params = torch.load(model_name, map_location="cpu")
 
 
 class BImageTransform (object):
