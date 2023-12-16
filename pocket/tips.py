@@ -4,7 +4,7 @@
 # FileName:     tips
 # Author:       8ucchiman
 # CreatedDate:  2023-11-14 17:54:07
-# LastModified: 2023-12-16 19:51:47
+# LastModified: 2023-12-16 22:03:35
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -2595,3 +2595,62 @@ qAp = QApplication(sys.argv)
 mado = Madoka()
 mado.show()
 qAp.exec()
+
+# -------------------------------------------
+# Reference: chatgpt: How to automatically resize images when images added in qt6 python?
+
+import sys
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QGridLayout
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
+from PySide6 import QtGui
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QPushButton, QFileDialog
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QImageReader, QPixmap
+
+class ImageResizer(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('Image Resizer')
+        self.setGeometry(100, 100, 800, 600)
+
+        self.image_label = QLabel(self)
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.image_label)
+
+        self.select_button = QPushButton('Select Image', self)
+        self.select_button.clicked.connect(self.loadImage)
+        self.layout.addWidget(self.select_button)
+
+        central_widget = QWidget()
+        central_widget.setLayout(self.layout)
+        self.setCentralWidget(central_widget)
+
+    def loadImage(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.Option.ReadOnly
+
+        file_dialog = QFileDialog()
+        file_name, _ = file_dialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.xpm *.jpg *.bmp *.gif);;All Files (*)", options=options)
+
+        if file_name:
+            image = QImage(file_name)
+            # Resize the image here (adjust the size as needed)
+            resized_image = image.scaled(400, 300, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
+            self.displayImage(resized_image)
+
+    def displayImage(self, image):
+        pixmap = QPixmap.fromImage(image)
+        self.image_label.setPixmap(pixmap)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = ImageResizer()
+    window.show()
+    sys.exit(app.exec())

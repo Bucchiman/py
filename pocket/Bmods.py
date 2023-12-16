@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2023-12-16 20:38:32
+# LastModified: 2023-12-16 21:53:52
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -851,9 +851,14 @@ class ImageLabel(QLabel):
 
 
 class BQt(QWidget):
-    def __init__(self):
+    def __init__(self, width, height):
         super().__init__()
-        self.resize(400, 400)
+
+        self.width = width
+        self.height = height
+        self.setFixedSize(width, height)
+
+
         self.setAcceptDrops(True)
 
         self.mainLayout = QVBoxLayout()
@@ -878,32 +883,38 @@ class BQt(QWidget):
         else:
             event.ignore()
 
-
     def dropEvent(self, event):
         if event.mimeData().hasImage:
-            #event.setDropAction(Qt.CopyAction)
+            # event.setDropAction(Qt.CopyAction)
             for url in event.mimeData().urls():
                 file_path = url.toLocalFile()
                 self.add_image(file_path)
+                self.setFixedSize(self.width, self.height)
 
             event.accept()
 
         else:
             event.ignore()
 
-
     def add_image(self, file_path):
         label = ImageLabel()
-        label.setPixmap(QPixmap(file_path))
+        # label.setPixmap(QPixmap(file_path).scaled(label.width(), label.height(), Qt.AspectRatioMode.KeepAspectRatio))
+        label.setPixmap(QPixmap(file_path).scaled(400, 300, Qt.AspectRatioMode.KeepAspectRatio))
 
         self.mainLayout.addWidget(label)
 
-        #self.photoViewer.setPixmap(QPixmap(file_path))
-
+        # self.photoViewer.setPixmap(QPixmap(file_path))
 
 
 app = QApplication(sys.argv)
-bqt = BQt()
+primary_screen = app.primaryScreen()
+
+screen_geometry = primary_screen.geometry()
+
+width = screen_geometry.width()
+height = screen_geometry.height()
+
+bqt = BQt(width, height)
 bqt.show()
 sys.exit(app.exec())
 
