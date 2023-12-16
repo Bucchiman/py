@@ -10,3 +10,13 @@
     - grid search for hyperparameters
         - [] set yaml config
         - [] heat map
+- matplotlib: add decorator of figures        issue: 14
+    - Motivation: to easily create figures
+    - toDo
+        - [] layout decorator
+            - title
+            - color
+            - legend
+        - [] add fzf function to set interactive mode
+    - Remarks
+        - gulliver code is useful
