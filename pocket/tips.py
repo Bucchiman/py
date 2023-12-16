@@ -4,7 +4,7 @@
 # FileName:     tips
 # Author:       8ucchiman
 # CreatedDate:  2023-11-14 17:54:07
-# LastModified: 2023-12-07 13:21:46
+# LastModified: 2023-12-16 19:51:47
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -2153,7 +2153,7 @@ arr2 = np.pad(arr, (2, 3), 'edge')                              # -> [4, 4, 4, 7
 arr2 = np.pad(arr, (4,), 'mean')
 
 # Example 6: Padding array using 'median' mode
-arr2 = np.pad(arr, (4,), 'median )
+arr2 = np.pad(arr, (4,), 'median' )
 
 # Example 7: Padding array using 'reflect' mode
 arr2 = np.pad(arr, (3, 2), 'reflect')
@@ -2163,3 +2163,435 @@ arr2 = np.pad(arr, (3, 2), 'symmetric')
 
 # Example 9: Padding array using 'minimum' mode
 arr2 = np.pad(arr, (3, 2), 'minimum') 
+
+
+# -------------------------------------------
+# Reference> https://stackoverflow.com/questions/69250313/how-to-handle-drag-and-drop-a-file-event-to-cv2-imshow-window
+# Reference> https://stackoverflow.com/questions/8568500/how-to-get-dropped-file-names-in-pyqt-pyside
+# from PyQt4.QtGui import QApplication, QLabel
+# from PySide2.QtWidgets import QApplication, QLabel
+from PyQt5.QtWidgets import QApplication, QLabel
+
+class Window(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        print('drag-enter')
+        if event.mimeData().hasUrls():
+            print('has urls')
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        lines = []
+        for url in event.mimeData().urls():
+            lines.append('dropped: %r' % url.toLocalFile())
+        self.setText('\n'.join(lines))
+    
+app = QApplication(['Drag & Drop'])
+window = Window()
+window.setGeometry(50, 100, 400, 300)
+window.show()
+app.exec_()
+
+
+# -------------------------------------------
+# Reference https://qiita.com/phyblas/items/d56003904c83938823f2
+# make window
+
+import sys
+from PyQt6.QtWidgets import QApplication,QWidget
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('空っぽな窓') # ウィンドウのタイトル
+        self.setGeometry(100,100,200,150) # ウィンドウの位置と大きさ
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+# make button
+
+import sys
+from PyQt6.QtWidgets import QApplication,QWidget,QPushButton
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        botan = QPushButton('とあるボタン',self)
+        botan.setGeometry(25,25,150,100)
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+
+# event
+
+import sys
+from PyQt6.QtWidgets import QApplication,QWidget,QPushButton
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        botan = QPushButton('閉じろ',self)
+        botan.clicked.connect(self.tojiro)
+
+    def tojiro(self):
+        print('今日はここまで。さよなら')
+        self.close()
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+
+# button event
+import sys,time
+from PyQt6.QtWidgets import QApplication,QWidget,QPushButton
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.botan = QPushButton('押してみて',self)
+        self.botan.setGeometry(10,10,150,50)
+        self.botan.pressed.connect(self.osaretara)
+        self.botan.released.connect(self.hanasaretara)
+
+    def osaretara(self):
+        self.kaishi = time.time() # 押されたら時間を計って記録する
+        self.botan.setText('押されている') # ボタンに書いた文字も変更
+
+    def hanasaretara(self):
+        print('%.3f秒押されていた'%(time.time()-self.kaishi)) # 放されたらまた時間を計って押され始めた時の時間でひく
+        self.botan.setText('押してみて')
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+
+# embed image
+import sys
+from PyQt6.QtWidgets import QApplication,QWidget,QLabel
+from PyQt6.QtGui import QPixmap
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        label = QLabel(self) # 画像を置くQLabel
+        label.move(10,10)
+        pix = QPixmap('sample/pics/lena.jpg') # 画像を読み込むQPixmap
+        pix = pix.scaledToWidth(180) # 大きさの変更
+        label.setPixmap(pix)
+        self.setFixedSize(pix.width()+20,pix.height()+20) # ウィンドウの大きさも画像の大きさに合わせて変更
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+
+# -------------------------------------------
+# Reference> https://qiita.com/phyblas/items/fbf71baf48460862c83f
+import sys
+from PyQt6.QtWidgets import QApplication,QWidget
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setAcceptDrops(True) # ドラッグを受けられるようにする
+
+    def dragEnterEvent(self,e): # ここでeはイベントのオブジェクトになる
+        m = e.mimeData() # mimeデータ取得
+        # 持っているデータのフォーマットを調べる
+        print(m.hasText(),m.hasHtml(),m.hasImage(),m.hasUrls(),m.hasColor())
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+
+# -------------------------------------------
+import sys
+from PyQt6.QtWidgets import QApplication,QWidget,QLabel,QVBoxLayout
+from PyQt6.QtGui import QPixmap
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setAcceptDrops(True)
+        self.vbl = QVBoxLayout()
+        self.setLayout(self.vbl)
+        self.show()
+
+    def dragEnterEvent(self,e):
+        if(e.mimeData().hasImage()):
+            e.accept() # 画像があると確認したら受け取る
+
+    def dropEvent(self,e):
+        label = QLabel() # 画像を入れるためのQLabel
+        pix = QPixmap(e.mimeData().imageData()) # 画像データをQPixmapに入れる
+        label.setPixmap(pix) # QPixmapをQLabelに入れる
+        self.vbl.addWidget(label) # 画像を持つQLabelをレイアウトに追加
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+
+# -------------------------------------------
+import sys,os
+from PyQt6.QtWidgets import QApplication,QWidget,QLabel,QGridLayout
+from PyQt6.QtGui import QPixmap
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet('QLabel {background-color: #fff; color: #139; font-size: 19px; font-family: Kaiti SC;}')
+        self.setAcceptDrops(True)
+        self.grid = QGridLayout()
+        self.setLayout(self.grid)
+        #self.grid.addWidget(QLabel('ファイル名'),0,0)
+        #self.grid.addWidget(QLabel('文字数'),0,1)
+        #self.grid.addWidget(QLabel('行数'),0,2)
+        self.n_file = 0
+
+    def dragEnterEvent(self, e):
+        if(e.mimeData().hasUrls()):
+            e.accept() # URLがあると確認したら受け取る
+
+    def dropEvent(self, e):
+        for url in e.mimeData().urls(): # ドロップされたファイルを一つずつ処理する
+            self.n_file += 1
+            #url = url.toLocalFile() # URLオブジェクトを文字列にする
+            # self.grid.addWidget(QLabel(os.path.basename(url)),self.n_file,0)
+            label = QLabel()
+            pix = QPixmap(url)
+            label.setPixmap(pix)
+            self.grid.addWidget(label, self.n_file, 0)
+            # with open(url) as f: # ファイルを読み込む
+            #     sss = f.read()
+            # self.grid.addWidget(QLabel('%d'%(len(sss))),self.n_file,1) # 文字数
+            # self.grid.addWidget(QLabel('%d'%(len(sss.split('\n')))),self.n_file,2) # 行数
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()
+
+# -------------------------------------------
+# Reference https://stackoverflow.com/questions/64252654/pyqt5-drag-and-drop-into-system-file-explorer-with-delayed-encoding
+import time
+
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt
+
+import tempfile
+import os
+
+# Use win32api on Windows because the pynput and mouse packages cause lag
+# https://github.com/moses-palmer/pynput/issues/390
+if os.name == 'nt':
+    import win32api
+
+
+    def mouse_pressed():
+        return win32api.GetKeyState(0x01) not in [0, 1]
+else:
+    import mouse
+
+
+    def mouse_pressed():
+        return mouse.is_pressed()
+
+
+class DelayedMimeData(QtCore.QMimeData):
+    def __init__(self):
+        super().__init__()
+        self.callbacks = []
+
+    def add_callback(self, callback):
+        self.callbacks.append(callback)
+
+    def retrieveData(self, mime_type: str, preferred_type: QtCore.QVariant.Type):
+        mp = mouse_pressed()
+        if not mp:
+            for callback in self.callbacks.copy():
+                self.callbacks.remove(callback)
+                callback()
+
+        return QtCore.QMimeData.retrieveData(self, mime_type, preferred_type)
+
+
+class Navigator(QtWidgets.QTreeWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setHeaderLabels(["Name"])
+        QtWidgets.QTreeWidgetItem(self, ['Test1'])
+        QtWidgets.QTreeWidgetItem(self, ['Test2'])
+        QtWidgets.QTreeWidgetItem(self, ['Test3'])
+
+        self.setAcceptDrops(True)
+        self.setDragEnabled(True)
+        self.setDragDropMode(self.DragDrop)
+        self.setDefaultDropAction(Qt.MoveAction)
+        self.setSelectionMode(self.ExtendedSelection)
+        self.setSelectionBehavior(self.SelectRows)
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def startDrag(self, actions):
+        drag = QtGui.QDrag(self)
+        names = [item.text(0) for item in self.selectedItems()]
+        mime = DelayedMimeData()
+        path_list = []
+        for name in names:
+            path = os.path.join(tempfile.gettempdir(), 'DragTest', name + '.txt')
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            print(path)
+
+            def write_to_file(path=path, name=name, widget=self):
+                with open(path, 'w+') as f:
+                    print("Writing large file(s)...")
+                    time.sleep(2)  # Sleep to simulate long file write
+                    f.write(f"Contents of {name}")
+
+            mime.add_callback(write_to_file)
+            path_list.append(QtCore.QUrl.fromLocalFile(path))
+
+        mime.setUrls(path_list)
+        mime.setData('application/x-qabstractitemmodeldatalist',
+                     self.mimeData(self.selectedItems()).data('application/x-qabstractitemmodeldatalist'))
+        drag.setMimeData(mime)
+        drag.exec_(Qt.MoveAction)
+        super().startDrag(actions)
+
+
+app = QtWidgets.QApplication([])
+
+nav = Navigator()
+nav.show()
+app.exec()
+
+# -------------------------------------------
+# Reference https://www.youtube.com/watch?v=mcT_bK1px_g
+import sys
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QGridLayout
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
+from PySide6 import QtGui
+
+class ImageLabel(QLabel):
+    def __init__(self):
+        super().__init__()
+        #self.setAlignment(Qt.AlignCenter)
+        self.setText('\n\n Drop Image Here \n\n')
+        self.setStyleSheet('''
+        QLabel{
+        border: 4px dashed # aaa
+        }
+                           ''')
+
+    def setPimap(self, image):
+        super().setPixmap(image)
+
+
+class AppDemo(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.resize(400, 400)
+        self.setAcceptDrops(True)
+
+        mainLayout = QVBoxLayout()
+
+        self.photoViewer = ImageLabel()
+        mainLayout.addWidget(self.photoViewer)
+
+        self.setLayout(mainLayout)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasImage:
+            event.accept()
+
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasImage:
+            event.accept()
+
+        else:
+            event.ignore()
+
+
+    def dropEvent(self, event):
+        if event.mimeData().hasImage:
+            #event.setDropAction(Qt.CopyAction)
+            file_path = event.mimeData().urls()[0].toLocalFile()
+            self.set_image(file_path)
+            event.accept()
+
+        else:
+            event.ignore()
+
+
+    def set_image(self, file_path):
+        self.photoViewer.setPixmap(QPixmap(file_path))
+
+
+
+app = QApplication(sys.argv)
+demo = AppDemo()
+demo.show()
+sys.exit(app.exec())
+
+
+# -------------------------------------------
+# Reference> https://qiita.com/phyblas/items/fbf71baf48460862c83f
+
+import sys,os
+from PyQt6.QtWidgets import QApplication,QWidget,QLabel,QGridLayout
+
+class Madoka(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet('QLabel {background-color: #fff; color: #139; font-size: 19px; font-family: Kaiti SC;}')
+        self.setAcceptDrops(True)
+        self.grid = QGridLayout()
+        self.setLayout(self.grid)
+        self.grid.addWidget(QLabel('ファイル名'),0,0)
+        self.grid.addWidget(QLabel('文字数'),0,1)
+        self.grid.addWidget(QLabel('行数'),0,2)
+        self.n_file = 0
+
+    def dragEnterEvent(self,e):
+        if(e.mimeData().hasUrls()):
+            e.accept() # URLがあると確認したら受け取る
+
+    def dropEvent(self,e):
+        for url in e.mimeData().urls(): # ドロップされたファイルを一つずつ処理する
+            self.n_file += 1
+            url = url.toLocalFile() # URLオブジェクトを文字列にする
+            self.grid.addWidget(QLabel(os.path.basename(url)),self.n_file,0)
+            with open(url) as f: # ファイルを読み込む
+                sss = f.read()
+            self.grid.addWidget(QLabel('%d'%(len(sss))),self.n_file,1) # 文字数
+            self.grid.addWidget(QLabel('%d'%(len(sss.split('\n')))),self.n_file,2) # 行数
+
+qAp = QApplication(sys.argv)
+mado = Madoka()
+mado.show()
+qAp.exec()

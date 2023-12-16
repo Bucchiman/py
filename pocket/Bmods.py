@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2023-02-18 14:28:37 +0900
+# LastModified: 2023-12-16 20:38:32
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -827,6 +827,88 @@ class Sample4GPIO (object):
 ################################################################
 
 ################################################################
+# Reference> https://www.youtube.com/watch?v=mcT_bK1px_g
+
+import sys
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QGridLayout
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
+from PySide6 import QtGui
+
+class ImageLabel(QLabel):
+    def __init__(self):
+        super().__init__()
+        #self.setAlignment(Qt.AlignCenter)
+        self.setText('\n\n Drop Image Here \n\n')
+        self.setStyleSheet('''
+        QLabel{
+        border: 4px dashed # aaa
+        }
+                           ''')
+
+    def setPixmap(self, image):
+        super().setPixmap(image)
+
+
+class BQt(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.resize(400, 400)
+        self.setAcceptDrops(True)
+
+        self.mainLayout = QVBoxLayout()
+        #self.mainLayout = QGridLayout()
+
+        self.photoViewer = ImageLabel()
+        self.mainLayout.addWidget(self.photoViewer)
+
+        self.setLayout(self.mainLayout)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasImage:
+            event.accept()
+
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasImage:
+            event.accept()
+
+        else:
+            event.ignore()
+
+
+    def dropEvent(self, event):
+        if event.mimeData().hasImage:
+            #event.setDropAction(Qt.CopyAction)
+            for url in event.mimeData().urls():
+                file_path = url.toLocalFile()
+                self.add_image(file_path)
+
+            event.accept()
+
+        else:
+            event.ignore()
+
+
+    def add_image(self, file_path):
+        label = ImageLabel()
+        label.setPixmap(QPixmap(file_path))
+
+        self.mainLayout.addWidget(label)
+
+        #self.photoViewer.setPixmap(QPixmap(file_path))
+
+
+
+app = QApplication(sys.argv)
+bqt = BQt()
+bqt.show()
+sys.exit(app.exec())
+
+
+#def BImage():
 
 
 def Bimagegrid (func):
