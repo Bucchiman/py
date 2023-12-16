@@ -1,0 +1,12 @@
+- opencv: popup image from panel of small images        issue: 12
+    - When clicked from panel of small images, the image is popup on the window.
+    - toDo
+        - [] Add drug and drop image function
+        - [] Some images can be popup on the window (max four images)
+        - [] Choose layout of images, horizontally or vertically.
+    - future work
+        - [] overlap images
+- raytune: grid search for hyperparamerters        issue: 13
+    - grid search for hyperparameters
+        - [] set yaml config
+        - [] heat map
