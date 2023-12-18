@@ -1,0 +1,8 @@
+- opencv: concatenate images in gui        issue: 11
+    - to make grid images intuitively in gui
+    - toDo
+        - [] can/cannot?
+            - you have to concatenate images in real time. In addtion, you can choose horizontal or vertical concatenations.
+            - save a grid image
+            - automatically current directory on filesystem (also can use commands of shell scripts)
+
