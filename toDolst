@@ -5,4 +5,25 @@
             - you have to concatenate images in real time. In addtion, you can choose horizontal or vertical concatenations.
             - save a grid image
             - automatically current directory on filesystem (also can use commands of shell scripts)
-
+- opencv: popup image from panel of small images        issue: 12
+    - When clicked from panel of small images, the image is popup on the window.
+    - toDo
+        - [] Add drug and drop image function
+        - [] Some images can be popup on the window (max four images)
+        - [] Choose layout of images, horizontally or vertically.
+    - future work
+        - [] overlap images
+- raytune: grid search for hyperparamerters        issue: 13
+    - grid search for hyperparameters
+        - [] set yaml config
+        - [] heat map
+- matplotlib: add decorator of figures        issue: 14
+    - Motivation: to easily create figures
+    - toDo
+        - [] layout decorator
+            - title
+            - color
+            - legend
+        - [] add fzf function to set interactive mode
+    - Remarks
+        - gulliver code is useful
