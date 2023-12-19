@@ -4,7 +4,7 @@
 # FileName:     tips
 # Author:       8ucchiman
 # CreatedDate:  2023-11-14 17:54:07
-# LastModified: 2023-12-07 13:21:46
+# LastModified: 2023-12-19 11:52:16
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -2153,7 +2153,7 @@ arr2 = np.pad(arr, (2, 3), 'edge')                              # -> [4, 4, 4, 7
 arr2 = np.pad(arr, (4,), 'mean')
 
 # Example 6: Padding array using 'median' mode
-arr2 = np.pad(arr, (4,), 'median )
+arr2 = np.pad(arr, (4,), 'median')
 
 # Example 7: Padding array using 'reflect' mode
 arr2 = np.pad(arr, (3, 2), 'reflect')
@@ -2163,3 +2163,22 @@ arr2 = np.pad(arr, (3, 2), 'symmetric')
 
 # Example 9: Padding array using 'minimum' mode
 arr2 = np.pad(arr, (3, 2), 'minimum') 
+
+
+
+# -------------------------------------------
+# Reference> https://blog.finxter.com/python-__add__/
+class Data(object):
+    def __init__(self, value):
+        self.value = value
+
+    def __add__(self, other):
+        return Data(self.value + other.value)
+
+a = Data(40)
+b = Data(2)
+c = a + b
+
+# -------------------------------------------
+# Reference: https://www.nblog09.com/w/2019/01/04/python-try/
+
