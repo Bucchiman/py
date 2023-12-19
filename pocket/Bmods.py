@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2023-12-14 17:20:03
+# LastModified: 2023-12-19 18:20:57
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -1384,6 +1384,28 @@ class BMatplotlib(object):
 
 ############################################################################################
 # toDo scikit-learn
+# Reference: chatgpt> how to make custom estimator of scikit-learn? Show me some templates
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import check_array, check_X_y
+
+class BScaler(BaseEstimator, TransformerMixin):
+    def __init__(self, scaling_factor=1.0):
+        self.scaling_factor = scaling_factor
+
+    def fit(self, X, y=None):
+        # Fit the scaler - for demonstration purposes, scaling_factor does not affect fitting
+        X, y = check_X_y(X, y)
+        return self
+
+    def transform(self, X):
+        # Apply the scaling transformation
+        X = check_array(X)
+        return X * self.scaling_factor
+
+# Example usage:
+# scaler = CustomScaler(scaling_factor=2.0)
+# scaled_data = scaler.fit_transform(input_data)
 
 class MyScikitLearn (object):
     def get_dataset(self):
