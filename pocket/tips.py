@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usgbin/env python
 # -*- coding: utf-8 -*-
 #
 # FileName:     tips
 # Author:       8ucchiman
 # CreatedDate:  2023-11-14 17:54:07
-# LastModified: 2023-12-19 11:52:16
+# LastModified: 2023-12-20 15:44:03
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -220,7 +220,7 @@ def mouse_event_matplotlib():
 # -------------------------------------------
 # find frame rate
 
-#!/usr/bin/env python
+#!/usgbin/env python
 
 def find_frame_rate():
     import cv2
@@ -918,7 +918,7 @@ test_data = datasets.FashionMNIST(
 
 # -------------------------------------------
 
-# Reference     https://pytorch.org/tutorials/beginner/basics/data_tutorial.html?highlight=custom%20dataset
+# Reference     https://pytorch.org/tutorials/beginnegbasics/data_tutorial.html?highlight=custom%20dataset
 # FasionMNIST
 
 
@@ -967,7 +967,7 @@ for i in range(1, cols * rows + 1):
 plt.show()
 
 # -------------------------------------------
-# Reference     https://pytorch.org/tutorials/beginner/introyt/trainingyt.html
+# Reference     https://pytorch.org/tutorials/beginnegintroyt/trainingyt.html
 
 import torch
 loss_fn = torch.nn.CrossEntropyLoss()
@@ -1001,7 +1001,7 @@ model.eval()
 
 # Download an example image from the pytorch website
 import urllib
-url, filename = ("https://github.com/pytorch/hub/raw/master/images/dog.jpg", "dog.jpg")
+url, filename = ("https://github.com/pytorch/hub/raw/mastegimages/dog.jpg", "dog.jpg")
 try: urllib.URLopener().retrieve(url, filename)
 except: urllib.request.urlretrieve(url, filename)
 
@@ -1035,7 +1035,7 @@ print(probabilities)
 
 
 # Download ImageNet labels
-!wget https://raw.githubusercontent.com/pytorch/hub/master/imagenet_classes.txt
+!wget https://raw.githubusercontent.com/pytorch/hub/mastegimagenet_classes.txt
 
 # Read the categories
 with open("imagenet_classes.txt", "r") as f:
@@ -1067,7 +1067,7 @@ fig.show()
 
 # -------------------------------------------
 # Ray tune
-# Reference     https://pytorch.org/tutorials/beginner/hyperparameter_tuning_tutorial.html
+# Reference     https://pytorch.org/tutorials/beginneghyperparameter_tuning_tutorial.html
 
 from functools import partial
 import os
@@ -2181,4 +2181,28 @@ c = a + b
 
 # -------------------------------------------
 # Reference: https://www.nblog09.com/w/2019/01/04/python-try/
+
+# -------------------------------------------
+# Reference: https://pillow.readthedocs.io/en/stable/reference/ImageDraw.html#module-PIL.ImageDraw
+
+import sys
+from PIL import Image, ImageDraw
+
+with Image.open("lena.jpg") as im:
+
+    draw = ImageDraw.Draw(im)
+    draw.line((0, 0) + im.size, fill=128)
+    draw.line((0, im.size[1], im.size[0], 0), fill=128)
+
+    # write to stdout
+    im.save(sys.stdout, "PNG")
+
+
+# -------------------------------------------
+import noise
+from random import uniform
+x = uniform(0, 10000)
+n = noise.pnoise1(x)  # 戻り値は -1.0～+1.0
+print(x, n)
+n = (n + 1) / 2  # 0.0～1.0 に変換する場合
 
