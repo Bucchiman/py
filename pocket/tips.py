@@ -4,7 +4,7 @@
 # FileName:     tips
 # Author:       8ucchiman
 # CreatedDate:  2023-11-14 17:54:07
-# LastModified: 2023-12-20 15:44:03
+# LastModified: 2023-12-27 15:03:02
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -2205,4 +2205,111 @@ x = uniform(0, 10000)
 n = noise.pnoise1(x)  # 戻り値は -1.0～+1.0
 print(x, n)
 n = (n + 1) / 2  # 0.0～1.0 に変換する場合
+
+
+
+# -------------------------------------------
+import os.path as osp
+import numpy as np
+from PIL import Image
+import mmcv
+import matplotlib.pyplot as plt
+# convert dataset annotation to semantic segmentation map
+data_root = 'xxxxx' # Pascal VOCのフォルダを指定します。
+img_dir = 'JPEGImages'
+ann_dir = 'SegmentationClass'
+
+_base_ = [
+    '../_base_/models/deeplabv3plus_r50-d8.py',
+    #'../_base_/datasets/pascal_voc12_aug.py', '../_base_/default_runtime.py',
+    '../_base_/datasets/pascal_voc12.py', '../_base_/default_runtime.py',
+
+    '../_base_/schedules/schedule_20k.py'
+]
+model = dict(
+    decode_head=dict(num_classes=21), auxiliary_head=dict(num_classes=21))
+
+from mmcv import Config
+cfg = Config.fromfile('configs/deeplabv3plus/deeplabv3plus_r50-d8_512x512_20k_voc12aug.py')
+
+from mmseg.apis import set_random_seed
+
+# Since we use ony one GPU, BN is used instead of SyncBN
+cfg.norm_cfg = dict(type='BN', requires_grad=True)
+cfg.model.backbone.norm_cfg = cfg.norm_cfg
+cfg.model.decode_head.norm_cfg = cfg.norm_cfg
+cfg.model.auxiliary_head.norm_cfg = cfg.norm_cfg
+
+# 分類するクラス数（独自に作成したカスタムデータセットの場合は変更してください。）
+#cfg.model.decode_head.num_classes = 8
+#cfg.model.auxiliary_head.num_classes = 8
+
+# データセットの種類とパスを設定
+cfg.dataset_type = 'PascalVOCDataset'
+cfg.data_root = data_root
+
+cfg.data.samples_per_gpu = 4
+cfg.data.workers_per_gpu=4
+
+
+cfg.data.train.type = cfg.dataset_type
+cfg.data.train.data_root = cfg.data_root
+cfg.data.train.img_dir = img_dir
+cfg.data.train.ann_dir = ann_dir
+cfg.data.train.pipeline = cfg.train_pipeline
+#cfg.data.train.split = 'splits/train.txt'
+
+cfg.data.val.type = cfg.dataset_type
+cfg.data.val.data_root = cfg.data_root
+cfg.data.val.img_dir = img_dir
+cfg.data.val.ann_dir = ann_dir
+cfg.data.val.pipeline = cfg.test_pipeline
+#cfg.data.val.split = 'splits/val.txt'
+
+cfg.data.test.type = cfg.dataset_type
+cfg.data.test.data_root = cfg.data_root
+cfg.data.test.img_dir = img_dir
+cfg.data.test.ann_dir = ann_dir
+cfg.data.test.pipeline = cfg.test_pipeline
+#cfg.data.test.split = 'splits/val.txt'
+
+# We can still use the pre-trained Mask RCNN model though we do not need to
+# use the mask branch
+cfg.load_from = 'https://download.openmmlab.com/mmsegmentation/v0.5/deeplabv3plus/deeplabv3plus_r50-d8_512x512_40k_voc12aug/deeplabv3plus_r50-d8_512x512_40k_voc12aug_20200613_161759-e1b43aa9.pth'
+
+# Set up working dir to save files and logs.
+cfg.work_dir = './work_dirs/tutorial'
+
+#cfg.runner.max_iters = 200
+#cfg.log_config.interval = 10
+#cfg.evaluation.interval = 200
+#cfg.checkpoint_config.interval = 200
+
+# Set seed to facitate reproducing the result
+cfg.seed = 0
+set_random_seed(0, deterministic=False)
+cfg.gpu_ids = range(1)
+
+# Let's have a look at the final config used for training
+print(f'Config:\n{cfg.pretty_text}')
+
+from mmseg.datasets import build_dataset
+from mmseg.models import build_segmentor
+from mmseg.apis import train_segmentor
+
+
+# Build the dataset
+datasets = [build_dataset(cfg.data.train)]
+
+# Build the detector
+model = build_segmentor(
+    cfg.model, train_cfg=cfg.get('train_cfg'), test_cfg=cfg.get('test_cfg'))
+# Add an attribute for visualization convenience
+model.CLASSES = datasets[0].CLASSES
+
+# Create work_dir
+mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
+train_segmentor(model, datasets, cfg, distributed=False, validate=True, 
+                meta=dict())
+
 
