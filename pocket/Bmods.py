@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2023-12-19 18:20:57
+# LastModified: 2024-02-07 16:56:49
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -667,6 +667,7 @@ def BVideoWrapper(func):
     def gaussianprocessing(frame):
         kernel = np.ones((5, 5), np.float32)/25
         dst = cv.filter2D(frame, -1, kernel)
+        return [dst]
     ----------
     Reference
     ----------
@@ -712,6 +713,33 @@ def sampleblur(frame):
     return [dst]
 import cv2 as cv
 sampleblur("Mountain.mp4")
+
+
+def Calc_calibration ():
+    """TL;DR
+    Description
+    ----------
+
+    ----------
+    Parameters
+    ----------
+    gamma : float, default: 1
+        Desc
+    s : float, default: 0.5 (purple)
+        Desc
+    ----------
+    Return
+    ----------
+
+    ----------
+    Example
+    ----------
+
+    ----------
+    Reference
+    ----------
+    """
+    pass
 
 
 def Bshow_video(path: str):
