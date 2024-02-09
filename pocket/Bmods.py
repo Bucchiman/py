@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2024-02-07 16:56:49
+# LastModified: 2024-02-08 17:29:16
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -676,6 +676,7 @@ def BVideoWrapper(func):
     def wrapper(*args, **kwargs):
         import cv2 as cv
         cap = cv.VideoCapture(args[0])
+
         if (cap.isOpened() is False):
             print("Error openening video stream or file")
         while (cap.isOpened()):
@@ -715,31 +716,91 @@ import cv2 as cv
 sampleblur("Mountain.mp4")
 
 
-def Calc_calibration ():
+def live_calc_calibration ():
     """TL;DR
     Description
     ----------
-
+        Calculate calibration based on the least 10 with web camera
     ----------
     Parameters
     ----------
-    gamma : float, default: 1
-        Desc
-    s : float, default: 0.5 (purple)
-        Desc
     ----------
     Return
     ----------
 
     ----------
     Example
+        live_calc_calibration
     ----------
 
     ----------
     Reference
+        https://docs.opencv.org/3.4/dc/dbb/tutorial_py_calibration.html
+        https://qiita.com/a2kiti/items/38171e6842b6332bba7b
     ----------
     """
-    pass
+    import numpy as np
+    import cv2 as cv
+
+    cap = cv.VideoCapture(0)
+    if cap.isOpened() is False:
+        raise ("IO Error")
+
+    # termination criteria
+    criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+    # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+    objp = np.zeros((6*7, 3), np.float32)
+    objp[:, :2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
+
+    # Arrays to store object points and image points from all the images.
+    objpoints = []      # 3d point in real world space
+    imgpoints = []      # 2d points in image plane.
+    count = 0
+
+    imgInd = 0
+    while True:
+        ret, img = cap.read()
+        if ret is False:
+            continue
+        cv.imwrite(f"/tmp/{str(count).zfill(3)}.png", img)
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+        cv.putText(img, 'Number of capture: ' + str(imgInd), (30, 20), cv.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+        cv.putText(img, 'c: Capture the image', (30, 40), cv.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+        cv.putText(img, 'q: Finish capturing and calcurate the camera matrix and distortion', (30, 60), cv.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
+        cv.imshow("Image", img)
+
+        k = cv.waitKey(1) & 0xFF
+        if k == ord('c'):
+            # Find the chess board corners
+            ret, corners = cv.findChessboardCorners(gray, (7, 6), None)
+            # If found, add object points, image points (after refining them)
+            if ret is True:
+                objpoints.append(objp)
+
+                corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+                imgpoints.append(corners2)
+
+                # Draw and display the corners
+                img = cv.drawChessboardCorners(img, (7, 6), corners2, ret)
+                cv.imshow('Image', img)
+                cv.waitKey(500)
+
+                imgInd += 1
+
+        if k == ord('q'):
+            break
+
+    # Calc urate the camera matrix
+    ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+    print(f"intrinsic parameter: {mtx}")
+
+    cap.release()
+    cv.destroyAllWindows()
+
+
 
 
 def Bshow_video(path: str):
