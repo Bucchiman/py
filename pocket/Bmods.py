@@ -4,7 +4,7 @@
 # FileName:     Bmods
 # Author:       8ucchiman
 # CreatedDate:  2023-07-27 13:18:37
-# LastModified: 2023-12-19 18:20:57
+# LastModified: 2024-03-05 15:58:29
 # Reference:    8ucchiman.jp
 # Description:  ---
 #
@@ -645,6 +645,34 @@ def _run_bfzfprompt(lst):
 # def Bfzfprompt4path (path: str):
 #     from pyfzf.pyfzf import FzfPrompt
 #     #fzf
+
+
+def BRealtime_camera():
+    """
+    Reference
+        https://www.klv.co.jp/corner/python-opencv-video-capture.html
+    """
+    import cv2 as cv
+
+    # カメラの設定　デバイスIDは0
+    cap = cv.VideoCapture(0)
+
+    # 繰り返しのためのwhile文
+    while True:
+        # カメラからの画像取得
+        ret, frame = cap.read()
+
+        # カメラの画像の出力
+        cv.imshow('camera', frame)
+
+        # 繰り返し分から抜けるためのif文
+        key = cv.waitKey(10)
+        if key == 27:
+            break
+
+    #メモリを解放して終了するためのコマンド
+    cap.release()
+    cv.destroyAllWindows()
 
 
 def BVideoWrapper(func):
